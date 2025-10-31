@@ -2,13 +2,13 @@
 // WICHTIG: Ersetze die Werte mit deinen eigenen Firebase-Daten!
 
 const firebaseConfig = {
-    apiKey: "DEIN-API-KEY",
-    authDomain: "DEIN-PROJECT-ID.firebaseapp.com",
-    databaseURL: "https://DEIN-PROJECT-ID-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "DEIN-PROJECT-ID",
-    storageBucket: "DEIN-PROJECT-ID.appspot.com",
-    messagingSenderId: "DEINE-SENDER-ID",
-    appId: "DEINE-APP-ID"
+  apiKey: "AIzaSyCkZrz7ey9NHT12of09ytwGokXBTU6ccTM",
+  authDomain: "hep-erbschaftssteuer.firebaseapp.com",
+  databaseURL: "https://hep-erbschaftssteuer-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "hep-erbschaftssteuer",
+  storageBucket: "hep-erbschaftssteuer.firebasestorage.app",
+  messagingSenderId: "818988344975",
+  appId: "1:818988344975:web:562007dd963667402f72fa"
 };
 
 // Firebase initialisieren (nur einmal)
