@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hep - Initiative für die Zukunft</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --hep-blue: #003876;
+            --hep-turquoise: #5eb9b4;
+            --hep-light-gray: #f5f5f5;
+            --hep-dark-gray: #333;
+            --hep-white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--hep-dark-gray);
+            background-color: var(--hep-white);
+        }
+
+        header {
+            background-color: var(--hep-white);
+            padding: 20px 40px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-placeholder {
+            width: 150px;
+            height: 50px;
+            background-color: var(--hep-blue);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        nav {
+            display: flex;
+            gap: 30px;
+        }
+
+        nav a {
+            color: var(--hep-blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        nav a:hover {
+            color: var(--hep-turquoise);
+        }
+
+        nav a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--hep-turquoise);
+        }
+
+        .hero {
+            background: linear-gradient(135deg, var(--hep-blue) 0%, var(--hep-turquoise) 100%);
+            color: white;
+            padding: 80px 40px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 1.3em;
+            max-width: 900px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin-top: 40px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        .section-title {
+            color: var(--hep-blue);
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 50px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .mini-dashboard {
+            background: linear-gradient(135deg, var(--hep-light-gray) 0%, #e8f5f4 100%);
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 60px;
+        }
+
+        .mini-dashboard h2 {
+            color: var(--hep-blue);
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+        }
+
+        .progress-ring {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .ring-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+
+        .ring-bg {
+            fill: none;
+            stroke: #e0e0e0;
+            stroke-width: 20;
+        }
+
+        .ring-progress {
+            fill: none;
+            stroke: var(--hep-turquoise);
+            stroke-width: 20;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .ring-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .ring-percentage {
+            font-size: 3em;
+            font-weight: bold;
+            color: var(--hep-blue);
+            display: block;
+        }
+
+        .ring-label {
+            font-size: 1em;
+            color: #666;
+        }
+
+        .progress-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .progress-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .progress-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .progress-item.completed .progress-icon {
+            filter: grayscale(0);
+        }
+
+        .progress-item:not(.completed) .progress-icon {
+            filter: grayscale(100%);
+            opacity: 0.4;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .content-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header.radio {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card-header.article1 {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .card-header.article2 {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .card-header.article3 {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .card-icon {
+            font-size: 5em;
+            color: white;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: white;
+            color: var(--hep-blue);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .status-badge.completed {
+            background: var(--hep-turquoise);
+            color: white;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .card-type {
+            color: var(--hep-turquoise);
+            font-size: 0.9em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .card-title {
+            color: var(--hep-blue);
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .card-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 0.9em;
+            color: #999;
+        }
+
+        .duration {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, var(--hep-blue) 0%, var(--hep-turquoise) 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+            border-radius: 15px;
+            margin: 60px 0;
+        }
+
+        .cta-section h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .cta-section p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: var(--hep-blue);
+            padding: 15px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        footer {
+            background-color: var(--hep-blue);
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin-top: 60px;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2em;
+            }
+
+            .hero-stats {
+                flex-direction: column;
+                gap: 30px;
+            }
+
+            nav {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-placeholder">hep</div>
+        <nav>
+            <a href="index.html" class="active">Start</a>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="#inhalte">Inhalte</a>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <h1>Initiative für die Zukunft</h1>
+        <p>
+            Am 30. November 2025 stimmt die Schweiz über eine nationale Erbschaftssteuer ab. 
+            Tauchen Sie ein in eine interaktive Lernreise durch Fakten, historische Hintergründe 
+            und unterschiedliche Perspektiven zu diesem wichtigen Thema.
+        </p>
+        <div class="hero-stats">
+            <div class="stat">
+                <span class="stat-number">🎙️ 1</span>
+                <span class="stat-label">Radiobeitrag</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">📰 3</span>
+                <span class="stat-label">Zeitungsartikel</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">📹 4</span>
+                <span class="stat-label">Video-Zusammenfassungen</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="mini-dashboard">
+            <h2>Ihr Lernfortschritt</h2>
+            <div class="progress-ring">
+                <div class="ring-container">
+                    <svg width="200" height="200">
+                        <circle class="ring-bg" cx="100" cy="100" r="80"></circle>
+                        <circle class="ring-progress" id="ring-progress" cx="100" cy="100" r="80"
+                            stroke-dasharray="502.4" stroke-dashoffset="502.4"></circle>
+                    </svg>
+                    <div class="ring-text">
+                        <span class="ring-percentage" id="total-percentage">0%</span>
+                        <span class="ring-label">abgeschlossen</span>
+                    </div>
+                </div>
+            </div>
+            <div class="progress-items">
+                <div class="progress-item" id="progress-radio">
+                    <div class="progress-icon">🎙️</div>
+                    <div>Radiobeitrag</div>
+                </div>
+                <div class="progress-item" id="progress-article1">
+                    <div class="progress-icon">📰</div>
+                    <div>Artikel 1</div>
+                </div>
+                <div class="progress-item" id="progress-article2">
+                    <div class="progress-icon">📰</div>
+                    <div>Artikel 2</div>
+                </div>
+                <div class="progress-item" id="progress-article3">
+                    <div class="progress-icon">📰</div>
+                    <div>Artikel 3</div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-title" id="inhalte">Interaktive Inhalte</h2>
+        <p class="section-subtitle">
+            Jeder Inhalt bietet tiefe Einblicke mit Videos, interaktiven Elementen und Verständnisfragen. 
+            Ihr Fortschritt wird automatisch gespeichert.
+        </p>
+
+        <div class="content-grid">
+            <div class="content-card" onclick="window.location.href='radio.html'">
+                <div class="card-header radio">
+                    <div class="card-icon">🎙️</div>
+                    <div class="status-badge" id="badge-radio">Offen</div>
+                </div>
+                <div class="card-body">
+                    <div class="card-type">Radiobeitrag</div>
+                    <h3 class="card-title">Geschichte der Erbschaftssteuer</h3>
+                    <p class="card-description">
+                        Interview mit Wirtschaftshistorikerin Gisela Hürlimann über den interkantonalen 
+                        Steuerwettbewerb und die historische Entwicklung seit 1990.
+                    </p>
+                    <div class="card-meta">
+                        <span class="duration">⏱️ ~12 Minuten</span>
+                        <span>Mit Transkript</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card" onclick="window.location.href='artikel1.html'">
+                <div class="card-header article1">
+                    <div class="card-icon">🌍</div>
+                    <div class="status-badge" id="badge-article1">Offen</div>
+                </div>
+                <div class="card-body">
+                    <div class="card-type">Zeitungsartikel 1</div>
+                    <h3 class="card-title">Schweiz als Super-Sonderfall</h3>
+                    <p class="card-description">
+                        Internationale Einordnung: Die Juso-Initiative im globalen Vergleich. 
+                        Historische Entwicklung der Erbschaftssteuern weltweit.
+                    </p>
+                    <div class="card-meta">
+                        <span class="duration">⏱️ ~8 Minuten</span>
+                        <span>Mit Video</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card" onclick="window.location.href='artikel2.html'">
+                <div class="card-header article2">
+                    <div class="card-icon">💡</div>
+                    <div class="status-badge" id="badge-article2">Offen</div>
+                </div>
+                <div class="card-body">
+                    <div class="card-type">Zeitungsartikel 2</div>
+                    <h3 class="card-title">Alternativen zur Initiative</h3>
+                    <p class="card-description">
+                        Ökonomische Perspektiven: Was Experten zu verschiedenen Formen der 
+                        Vermögensbesteuerung sagen und welche Alternativen diskutiert werden.
+                    </p>
+                    <div class="card-meta">
+                        <span class="duration">⏱️ ~10 Minuten</span>
+                        <span>Mit Steuer-Simulator</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card" onclick="window.location.href='artikel3.html'">
+                <div class="card-header article3">
+                    <div class="card-icon">📊</div>
+                    <div class="status-badge" id="badge-article3">Offen</div>
+                </div>
+                <div class="card-body">
+                    <div class="card-type">Zeitungsartikel 3</div>
+                    <h3 class="card-title">Multimillionär-Ranking</h3>
+                    <p class="card-description">
+                        Wo leben die Superreichen? Interaktive Karte zeigt die Verteilung der 
+                        2500 Multimillionäre in der Schweiz und die Auswirkungen auf Kantone.
+                    </p>
+                    <div class="card-meta">
+                        <span class="duration">⏱️ ~7 Minuten</span>
+                        <span>Mit interaktiver Karte</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h2>Bereit zu starten?</h2>
+            <p>
+                Beginnen Sie Ihre interaktive Lernreise und entdecken Sie alle Facetten 
+                der Erbschaftssteuer-Debatte. Ihr Fortschritt wird automatisch gespeichert.
+            </p>
+            <a href="radio.html" class="cta-button">Jetzt beginnen →</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2025 hep Verlag AG | Gutenbergstrasse 31 | CH-3001 Bern | +41 31 310 29 29 | hep-verlag.ch</p>
+    </footer>
+
+    <script>
+        // Load progress from localStorage
+        function loadProgress() {
+            const progress = JSON.parse(localStorage.getItem('hep_progress') || '{}');
+            
+            let completed = 0;
+            const total = 4;
+
+            // Update badges and progress items
+            ['radio', 'article1', 'article2', 'article3'].forEach(item => {
+                if (progress[item]) {
+                    completed++;
+                    document.getElementById('badge-' + item).textContent = '✓ Erledigt';
+                    document.getElementById('badge-' + item).classList.add('completed');
+                    document.getElementById('progress-' + item).classList.add('completed');
+                }
+            });
+
+            // Update percentage
+            const percentage = Math.round((completed / total) * 100);
+            document.getElementById('total-percentage').textContent = percentage + '%';
+
+            // Update ring progress
+            const circumference = 502.4;
+            const offset = circumference - (percentage / 100) * circumference;
+            document.getElementById('ring-progress').style.strokeDashoffset = offset;
+        }
+
+        // Load on page load
+        window.addEventListener('load', loadProgress);
+    </script>
+</body>
+</html>
