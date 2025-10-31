@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hep - Multimillionär-Ranking in der Schweiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --hep-blue: #003876;
+            --hep-turquoise: #5eb9b4;
+            --hep-light-gray: #f5f5f5;
+            --hep-dark-gray: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--hep-dark-gray);
+            background-color: white;
+        }
+
+        header {
+            background-color: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-placeholder {
+            width: 150px;
+            height: 50px;
+            background-color: var(--hep-blue);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        nav {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        nav a {
+            color: var(--hep-blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--hep-turquoise);
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--hep-turquoise);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .hero-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .video-section {
+            background: var(--hep-light-gray);
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+        }
+
+        .video-placeholder {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: var(--hep-turquoise);
+            display: block;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+
+        .section-title {
+            color: var(--hep-blue);
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--hep-turquoise);
+        }
+
+        .map-container {
+            background: var(--hep-light-gray);
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+        }
+
+        .canton-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .canton-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .canton-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--hep-turquoise);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .canton-card.selected {
+            background: var(--hep-turquoise);
+            color: white;
+        }
+
+        .canton-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .canton-data {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .detail-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-top: 30px;
+            display: none;
+        }
+
+        .detail-panel.show {
+            display: block;
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .detail-title {
+            color: var(--hep-blue);
+            font-size: 1.8em;
+        }
+
+        .detail-content {
+            line-height: 1.8;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #e8f5f4 0%, var(--hep-light-gray) 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 40px 0;
+        }
+
+        .highlight-box h3 {
+            color: var(--hep-blue);
+            margin-bottom: 15px;
+        }
+
+        .source-box {
+            background: var(--hep-light-gray);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 40px 0;
+        }
+
+        .source-box h3 {
+            color: var(--hep-blue);
+            margin-bottom: 15px;
+        }
+
+        .source-link {
+            display: inline-block;
+            background: var(--hep-turquoise);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: background 0.3s;
+        }
+
+        .source-link:hover {
+            background: var(--hep-blue);
+        }
+
+        .completion-section {
+            background: linear-gradient(135deg, var(--hep-blue) 0%, var(--hep-turquoise) 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .completion-checkbox {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            font-size: 1.2em;
+        }
+
+        .checkbox-large {
+            width: 30px;
+            height: 30px;
+            border: 3px solid white;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .checkbox-large.checked {
+            background: white;
+            color: var(--hep-blue);
+        }
+
+        .checkbox-large.checked::after {
+            content: '✓';
+            font-weight: bold;
+            font-size: 1.5em;
+        }
+
+        .next-button {
+            display: inline-block;
+            background: white;
+            color: var(--hep-blue);
+            padding: 15px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: transform 0.3s;
+        }
+
+        .next-button:hover {
+            transform: scale(1.05);
+        }
+
+        footer {
+            background-color: var(--hep-blue);
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin-top: 60px;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 1.8em;
+            }
+            .canton-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-placeholder">hep</div>
+        <nav>
+            <a href="index.html" class="back-button">← Zurück zur Übersicht</a>
+            <a href="dashboard.html">Dashboard</a>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <div class="hero-icon">📊</div>
+        <h1>Wo leben die Superreichen?</h1>
+        <p>Multimillionär-Ranking der Schweizer Kantone</p>
+    </div>
+
+    <div class="container">
+        <div class="video-section">
+            <h2 style="color: var(--hep-blue); margin-bottom: 20px;">Video-Zusammenfassung</h2>
+            <div class="video-placeholder">
+                📹 Video wird hier eingebettet<br>
+                (Video ist noch in Produktion)
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number">~2500</span>
+                <div class="stat-label">Superreiche in der Schweiz</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">3×</span>
+                <div class="stat-label">Verdreifacht seit 2005</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">50 Mio.</span>
+                <div class="stat-label">Vermögen (Schwellenwert)</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">59</span>
+                <div class="stat-label">Superreiche in Hergiswil NW</div>
+            </div>
+        </div>
+
+        <div class="map-container">
+            <h2 class="section-title">📍 Interaktive Kantone</h2>
+            <p style="color: #666; margin-bottom: 20px;">
+                Klicken Sie auf einen Kanton, um Details zu sehen. Die Zahlen zeigen Superreiche pro 10'000 Einwohner.
+            </p>
+            
+            <div class="canton-grid">
+                <div class="canton-card" onclick="showCantonDetails('Nidwalden', 22.2, 1)">
+                    <div class="canton-name">🥇 Nidwalden</div>
+                    <div class="canton-data">22.2 pro 10'000 EW</div>
+                </div>
+                <div class="canton-card" onclick="showCantonDetails('Zug', 18.9, 2)">
+                    <div class="canton-name">🥈 Zug</div>
+                    <div class="canton-data">18.9 pro 10'000 EW</div>
+                </div>
+                <div class="canton-card" onclick="showCantonDetails('Schwyz', 18.8, 3)">
+                    <div class="canton-name">🥉 Schwyz</div>
+                    <div class="canton-data">18.8 pro 10'000 EW</div>
+                </div>
+                <div class="canton-card" onclick="showCantonDetails('Zürich', 4.2, 0)">
+                    <div class="canton-name">Zürich</div>
+                    <div class="canton-data">400 Superreiche absolut</div>
+                </div>
+                <div class="canton-card" onclick="showCantonDetails('Genf', 7.0, 0)">
+                    <div class="canton-name">Genf</div>
+                    <div class="canton-data">370 Superreiche absolut</div>
+                </div>
+                <div class="canton-card" onclick="showCantonDetails('Waadt', 3.8, 0)">
+                    <div class="canton-name">Waadt</div>
+                    <div class="canton-data">350 Superreiche absolut</div>
+                </div>
+                <div class="canton-card" onclick="showCantonDetails('Obwalden', 7.0, 0)">
+                    <div class="canton-name">Obwalden</div>
+                    <div class="canton-data">7.0 pro 10'000 EW</div>
+                </div>
+                <div class="canton-card" onclick="showCantonDetails('Appenzell IR', 7.0, 0)">
+                    <div class="canton-name">Appenzell IR</div>
+                    <div class="canton-data">7.0 pro 10'000 EW</div>
+                </div>
+                <div class="canton-card" onclick="showCantonDetails('Aargau', 0.8, 0)">
+                    <div class="canton-name">Aargau</div>
+                    <div class="canton-data">< 1 pro 10'000 EW</div>
+                </div>
+                <div class="canton-card" onclick="showCantonDetails('Jura', 0.8, 0)">
+                    <div class="canton-name">Jura</div>
+                    <div class="canton-data">< 1 pro 10'000 EW</div>
+                </div>
+                <div class="canton-card" onclick="showCantonDetails('Neuenburg', 0.8, 0)">
+                    <div class="canton-name">Neuenburg</div>
+                    <div class="canton-data">< 1 pro 10'000 EW</div>
+                </div>
+                <div class="canton-card" onclick="showCantonDetails('Freiburg', 0.4, 0)">
+                    <div class="canton-name">Freiburg</div>
+                    <div class="canton-data">0.4 pro 10'000 EW (Schlusslicht)</div>
+                </div>
+            </div>
+
+            <div class="detail-panel" id="detail-panel">
+                <div class="detail-header">
+                    <h3 class="detail-title" id="detail-title">Kanton auswählen</h3>
+                    <button onclick="closeDetails()" style="background: none; border: none; font-size: 1.5em; cursor: pointer; color: #999;">×</button>
+                </div>
+                <div class="detail-content" id="detail-content">
+                    Wählen Sie einen Kanton aus, um Details zu sehen.
+                </div>
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <h3>🎯 Hergiswil NW: Das Superreichen-Dorf</h3>
+            <p style="line-height: 1.8;">
+                Das 6300-Seelen-Dorf Hergiswil am Vierwaldstättersee ist der Hotspot der Superreichen: 
+                59 Multimillionäre leben hier, das sind 22.2 pro 10'000 Einwohner – Schweizer Rekord! 
+                Rund jeder 100. Hergiswiler wäre bei einem Ja zur Juso-Initiative von den Folgen betroffen. 
+                Laut dem Gemeindepräsidenten sind bereits erste Superreiche «in den letzten Monaten mit 
+                explizitem Verweis auf die Juso-Initiative» aus dem Dorf weggezogen.
+            </p>
+        </div>
+
+        <div class="source-box">
+            <h3>📄 Quelle</h3>
+            <p><strong>Titel:</strong> In diesem Schweizer Dorf wohnen die meisten Superreichen</p>
+            <p><strong>Autorin:</strong> Alessia Rambaldi</p>
+            <p><strong>Medium:</strong> 20 Minuten / Sonntagszeitung</p>
+            <p><strong>Kontext:</strong> Artikel zum Multimillionär-Ranking im Hinblick auf die Abstimmung zur Erbschaftssteuer-Initiative der Juso am 30. November 2025</p>
+            <a href="https://www.20min.ch" target="_blank" class="source-link">📄 Zur Originalquelle</a>
+        </div>
+
+        <div class="completion-section">
+            <h2>Artikel gelesen? ✓</h2>
+            <p>Markieren Sie diesen Inhalt als erledigt, um Ihren Fortschritt zu speichern.</p>
+            <div class="completion-checkbox">
+                <div class="checkbox-large" id="completion-check" onclick="markCompleted()"></div>
+                <label>Ich habe den Artikel gelesen und verstanden</label>
+            </div>
+            <a href="dashboard.html" class="next-button">Zum Dashboard →</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2025 hep Verlag AG | Gutenbergstrasse 31 | CH-3001 Bern | +41 31 310 29 29 | hep-verlag.ch</p>
+    </footer>
+
+    <script>
+        const cantonDetails = {
+            'Nidwalden': {
+                rank: 1,
+                text: `<strong>Spitzenreiter:</strong> Mit 22.2 Superreichen pro 10'000 Einwohner führt Nidwalden die Schweiz an. 
+                Das verdankt der Kanton vor allem dem 6300-Seelen-Dorf Hergiswil, wo 59 Multimillionäre am Ufer des 
+                Vierwaldstättersees leben. Etwa jeder hundertste Hergiswiler wäre von der Juso-Initiative betroffen.`
+            },
+            'Zug': {
+                rank: 2,
+                text: `<strong>Platz 2:</strong> Der Kanton Zug kommt auf 18.9 Superreiche pro 10'000 Einwohner. 
+                Trotz hoher Dichte an Multimillionären seien laut Finanzdirektor Heinz Tännler keine negativen 
+                Auswirkungen der Juso-Initiative spürbar. Im Gegenteil: "Wir verzeichneten weiterhin einen Zuwachs 
+                an Steuerzahlern mit sehr grossem Vermögen."`
+            },
+            'Schwyz': {
+                rank: 3,
+                text: `<strong>Platz 3:</strong> Die Steueroase Schwyz liegt mit 18.8 Superreichen pro 10'000 Einwohner 
+                knapp hinter Zug. Allerdings: Seitdem die Juso-Initiative ein Thema ist, habe es kaum noch Zuzüge 
+                in den obersten Vermögensklassen gegeben, so der Vorsteher der Steuerverwaltung.`
+            },
+            'Zürich': {
+                rank: 0,
+                text: `<strong>Absoluter Spitzenreiter:</strong> Zürich führt mit 400 Superreichen die absolute Rangliste an. 
+                Relativ zur Bevölkerung sind es etwa 4.2 pro 10'000 Einwohner. Der Kanton ist aufgrund seiner 
+                Wirtschaftskraft und internationalen Ausrichtung ein Magnet für wohlhabende Zuzüger.`
+            },
+            'Genf': {
+                rank: 0,
+                text: `<strong>Internationale Metropole:</strong> Genf beherbergt 370 Superreiche. Mit etwa 7.0 pro 10'000 
+                Einwohner liegt der Kanton im oberen Mittelfeld. Die internationale Ausrichtung und viele internationale 
+                Organisationen machen Genf attraktiv für vermögende Personen.`
+            },
+            'Waadt': {
+                rank: 0,
+                text: `<strong>Genfersee-Region:</strong> Im Kanton Waadt leben 350 Multimillionäre, das sind etwa 3.8 
+                pro 10'000 Einwohner. Besonders die Region um den Genfersee ist beliebt bei wohlhabenden Zuzügern.`
+            },
+            'Obwalden': {
+                rank: 0,
+                text: `Mit 7.0 Superreichen pro 10'000 Einwohner liegt Obwalden im oberen Mittelfeld der Schweizer Kantone.`
+            },
+            'Appenzell IR': {
+                rank: 0,
+                text: `Der kleinste Kanton der Schweiz kommt auf 7.0 Superreiche pro 10'000 Einwohner.`
+            },
+            'Aargau': {
+                rank: 0,
+                text: `<strong>Mittelland:</strong> Im Aargau findet man relativ gesehen weniger Superreiche: 
+                weniger als 1 pro 10'000 Einwohner. Typisch für die Mittelland-Kantone.`
+            },
+            'Jura': {
+                rank: 0,
+                text: `Auch im Jura sind auf 10'000 Einwohner weniger als 1 Steuerpflichtiger mit einem 
+                Vermögen von über 50 Millionen Franken zu finden.`
+            },
+            'Neuenburg': {
+                rank: 0,
+                text: `Neuenburg weist ebenfalls eine sehr niedrige Dichte an Superreichen auf: 
+                weniger als 1 pro 10'000 Einwohner.`
+            },
+            'Freiburg': {
+                rank: 0,
+                text: `<strong>Schlusslicht:</strong> Mit nur 0.4 Superreichen pro 10'000 Einwohner hat Freiburg 
+                den tiefsten Wert aller Schweizer Kantone.`
+            }
+        };
+
+        function showCantonDetails(canton, ratio, rank) {
+            const panel = document.getElementById('detail-panel');
+            const title = document.getElementById('detail-title');
+            const content = document.getElementById('detail-content');
+            
+            // Remove selection from all cards
+            document.querySelectorAll('.canton-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Select clicked card
+            event.currentTarget.classList.add('selected');
+            
+            // Show details
+            title.textContent = canton;
+            content.innerHTML = cantonDetails[canton]?.text || 'Keine Details verfügbar.';
+            panel.classList.add('show');
+            
+            // Scroll to panel
+            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function closeDetails() {
+            document.getElementById('detail-panel').classList.remove('show');
+            document.querySelectorAll('.canton-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+        }
+
+        function markCompleted() {
+            const checkbox = document.getElementById('completion-check');
+            checkbox.classList.toggle('checked');
+            
+            const progress = JSON.parse(localStorage.getItem('hep_progress') || '{}');
+            progress.article3 = checkbox.classList.contains('checked');
+            localStorage.setItem('hep_progress', JSON.stringify(progress));
+        }
+
+        window.addEventListener('load', () => {
+            const progress = JSON.parse(localStorage.getItem('hep_progress') || '{}');
+            if (progress.article3) {
+                document.getElementById('completion-check').classList.add('checked');
+            }
+        });
+    </script>
+</body>
+</html>
