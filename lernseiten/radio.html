@@ -1,12 +1,9 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>hep - Radiobeitrag</title>
+    <title>hep - Radiobeitrag zur Geschichte der Erbschaftssteuer</title>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -51,122 +48,274 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 30px 20px;
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin: 25px 0;
         }
 
         h1 {
             color: var(--hep-blue);
-            font-size: 42px;
-            margin-bottom: 20px;
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        h2 {
+            color: var(--hep-blue);
+            font-size: 22px;
+            margin-bottom: 12px;
+        }
+
+        h3 {
+            color: var(--hep-blue);
+            font-size: 17px;
+            margin-bottom: 10px;
         }
 
         .audio-player {
             background: var(--hep-light-gray);
-            padding: 30px;
-            border-radius: 15px;
-            margin: 30px 0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
         }
 
         .audio-player audio {
             width: 100%;
-            margin-top: 15px;
+            margin-top: 10px;
+        }
+
+        .content-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .poll-question {
+            background: var(--hep-light-gray);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .poll-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .poll-option {
+            padding: 12px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .poll-option:hover {
+            border-color: var(--hep-turquoise);
+        }
+
+        .poll-option.selected {
+            border-color: var(--hep-turquoise);
+            background: rgba(94, 185, 180, 0.15);
+            font-weight: 600;
         }
 
         .quiz-section {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin: 30px 0;
-        }
-
-        .quiz-question {
             margin-bottom: 25px;
         }
 
-        .quiz-question h3 {
-            color: var(--hep-blue);
-            margin-bottom: 15px;
-        }
-
-        .quiz-options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .quiz-option {
-            padding: 15px;
+        .question-card {
             background: var(--hep-light-gray);
-            border-radius: 8px;
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mc-options {
+            display: grid;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .mc-option {
+            padding: 10px 12px;
+            background: white;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             border: 2px solid transparent;
+            font-size: 14px;
         }
 
-        .quiz-option:hover {
-            background: #e0e0e0;
+        .mc-option:hover {
+            background: #f8f9fa;
         }
 
-        .quiz-option.selected {
+        .mc-option.selected {
             border-color: var(--hep-turquoise);
             background: rgba(94, 185, 180, 0.1);
         }
 
-        .quiz-option.correct {
+        .mc-option.correct {
             border-color: #28a745;
             background: rgba(40, 167, 69, 0.1);
         }
 
-        .quiz-option.incorrect {
+        .mc-option.incorrect {
             border-color: #dc3545;
             background: rgba(220, 53, 69, 0.1);
         }
 
-        .opinion-section {
-            background: var(--hep-light-gray);
-            padding: 30px;
-            border-radius: 15px;
-            margin: 30px 0;
+        .tf-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .tf-option {
+            padding: 12px;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
             text-align: center;
+            border: 2px solid transparent;
+            font-weight: 600;
         }
 
-        .opinion-section h3 {
-            color: var(--hep-blue);
-            margin-bottom: 20px;
+        .tf-option.true-opt {
+            color: #28a745;
         }
 
-        .opinion-buttons {
-            display: flex;
+        .tf-option.false-opt {
+            color: #dc3545;
+        }
+
+        .tf-option.selected {
+            border-color: var(--hep-turquoise);
+            background: rgba(94, 185, 180, 0.1);
+        }
+
+        .tf-option.correct {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.15);
+        }
+
+        .tf-option.incorrect {
+            border-color: #dc3545;
+            background: rgba(220, 53, 69, 0.15);
+        }
+
+        .fill-blank-input {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            margin: 0 5px;
+            min-width: 80px;
+        }
+
+        .fill-blank-input:focus {
+            outline: none;
+            border-color: var(--hep-turquoise);
+        }
+
+        .fill-blank-input.correct {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+        }
+
+        .fill-blank-input.incorrect {
+            border-color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+        }
+
+        .matching-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .matching-item {
+            padding: 12px;
+            background: white;
+            border-radius: 6px;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .matching-item:hover {
+            border-color: var(--hep-turquoise);
+        }
+
+        .matching-item.selected {
+            border-color: var(--hep-turquoise);
+            background: rgba(94, 185, 180, 0.15);
+            font-weight: 600;
+        }
+
+        .matching-item.matched {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+            cursor: default;
+        }
+
+        .matching-item.wrong {
+            border-color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+        }
+
+        .sortable-list {
+            background: white;
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .sortable-item {
+            padding: 10px 12px;
+            background: var(--hep-light-gray);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: move;
+            border: 2px solid transparent;
+            font-size: 14px;
+        }
+
+        .sortable-item:hover {
+            background: #e0e0e0;
+        }
+
+        .sortable-item.dragging {
+            opacity: 0.5;
         }
 
         .btn {
-            padding: 15px 40px;
+            padding: 10px 25px;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
         }
 
-        .btn-pro {
-            background: #28a745;
-            color: white;
-        }
-
-        .btn-neutral {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .btn-contra {
-            background: #dc3545;
+        .btn-primary {
+            background: linear-gradient(135deg, var(--hep-blue), var(--hep-turquoise));
             color: white;
         }
 
@@ -178,53 +327,58 @@
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--hep-blue), var(--hep-turquoise));
-            color: white;
-        }
-
-        .completion-section {
-            background: linear-gradient(135deg, var(--hep-blue), var(--hep-turquoise));
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            margin: 30px 0;
-        }
-
-        .completion-section h2 {
-            margin-bottom: 20px;
+            transform: none;
         }
 
         .success-message {
             background: #d4edda;
             color: #155724;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 12px 0;
             text-align: center;
+            font-size: 14px;
+        }
+
+        .completion-section {
+            background: linear-gradient(135deg, var(--hep-blue), var(--hep-turquoise));
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 25px 0;
         }
 
         .navigation {
             display: flex;
             justify-content: space-between;
-            margin-top: 40px;
+            margin-top: 25px;
+            gap: 15px;
         }
 
         .nav-btn {
-            padding: 12px 30px;
+            padding: 10px 20px;
             background: var(--hep-turquoise);
             color: white;
             text-decoration: none;
             border-radius: 8px;
             font-weight: 600;
             transition: all 0.3s;
+            font-size: 14px;
         }
 
         .nav-btn:hover {
             background: var(--hep-blue);
+        }
+
+        @media (max-width: 1024px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+
+            .poll-options {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -234,65 +388,268 @@
     </header>
 
     <div class="container">
-        <h1>🎙️ Radiobeitrag zur Initiative</h1>
-        <p>Höre den Radiobeitrag und beantworte anschließend die Fragen.</p>
-
+        <h1>🎙️ Geschichte der Erbschaftssteuer in der Schweiz</h1>
+        <p style="margin-bottom: 20px;">Ein Gespräch mit Wirtschaftshistorikerin Gisela Hürlimann</p>
+        
         <!-- Audio Player -->
         <div class="audio-player">
-            <h2>Radiobeitrag</h2>
+            <h2>Radiobeitrag anhören</h2>
             <audio id="audioPlayer" controls>
                 <source src="../assets/media/audio/radiobeitrag.mp3" type="audio/mpeg">
                 Dein Browser unterstützt das Audio-Element nicht.
             </audio>
         </div>
 
-        <!-- Quiz -->
-        <div class="quiz-section">
-            <h2>📝 Quiz zum Radiobeitrag</h2>
-            
-            <div class="quiz-question" id="q1">
-                <h3>1. Wie hoch ist der geplante Steuersatz bei der Initiative?</h3>
-                <div class="quiz-options">
-                    <div class="quiz-option" onclick="selectAnswer('q1', 'a', false)">A) 20%</div>
-                    <div class="quiz-option" onclick="selectAnswer('q1', 'b', true)">B) 50%</div>
-                    <div class="quiz-option" onclick="selectAnswer('q1', 'c', false)">C) 30%</div>
-                    <div class="quiz-option" onclick="selectAnswer('q1', 'd', false)">D) 40%</div>
+        <!-- Umfrage: Informativ? -->
+        <div class="poll-question">
+            <h3>💭 Wie informativ fandest du den Radiobeitrag?</h3>
+            <div class="poll-options">
+                <div class="poll-option" onclick="submitPoll('sehr_informativ')">
+                    ⭐⭐⭐⭐⭐ Sehr informativ
+                </div>
+                <div class="poll-option" onclick="submitPoll('informativ')">
+                    ⭐⭐⭐⭐ Informativ
+                </div>
+                <div class="poll-option" onclick="submitPoll('mittel')">
+                    ⭐⭐⭐ Mittel
+                </div>
+                <div class="poll-option" onclick="submitPoll('wenig')">
+                    ⭐⭐ Wenig informativ
                 </div>
             </div>
-
-            <div class="quiz-question" id="q2">
-                <h3>2. Ab welchem Betrag würde die Steuer greifen?</h3>
-                <div class="quiz-options">
-                    <div class="quiz-option" onclick="selectAnswer('q2', 'a', false)">A) 1 Million CHF</div>
-                    <div class="quiz-option" onclick="selectAnswer('q2', 'b', false)">B) 5 Millionen CHF</div>
-                    <div class="quiz-option" onclick="selectAnswer('q2', 'c', false)">C) 10 Millionen CHF</div>
-                    <div class="quiz-option" onclick="selectAnswer('q2', 'd', true)">D) 50 Millionen CHF</div>
-                </div>
-            </div>
-
-            <button class="btn btn-primary" id="submitQuiz" onclick="submitQuiz()" disabled>
-                Quiz abschicken
-            </button>
-            
-            <div id="quizResult" style="display: none;"></div>
+            <div class="success-message" id="pollResult" style="display: none;"></div>
         </div>
 
-        <!-- Meinungsumfrage -->
-        <div class="opinion-section">
-            <h3>💭 Was ist deine Meinung zur Initiative?</h3>
-            <div class="opinion-buttons">
-                <button class="btn btn-pro" onclick="submitOpinion('pro')">👍 Dafür</button>
-                <button class="btn btn-neutral" onclick="submitOpinion('neutral')">🤷 Unentschieden</button>
-                <button class="btn btn-contra" onclick="submitOpinion('contra')">👎 Dagegen</button>
+        <h2>📝 Wissens-Check: Geschichte der Erbschaftssteuer</h2>
+        <p style="margin-bottom: 20px;">Teste dein Verständnis zur historischen Entwicklung:</p>
+
+        <div class="grid-2col">
+            <!-- Linke Spalte -->
+            <div>
+                <!-- Frage 1: Lückentext -->
+                <div class="content-card quiz-section">
+                    <div class="question-card" id="q1">
+                        <h3>1. Vervollständige die Jahreszahlen:</h3>
+                        <p style="margin-top: 10px; line-height: 2;">
+    Zwischen 
+    <select class="fill-blank-input" id="blank1" style="width: 100px; cursor: pointer;">
+        <option value="">?</option>
+        <option value="1970">1970</option>
+        <option value="1980">1980</option>
+        <option value="1990">1990</option>
+        <option value="2000">2000</option>
+    </select>
+    und 
+    <select class="fill-blank-input" id="blank2" style="width: 100px; cursor: pointer;">
+        <option value="">?</option>
+        <option value="2009">2009</option>
+        <option value="2015">2015</option>
+        <option value="2019">2019</option>
+        <option value="2025">2025</option>
+    </select>
+    ist die Erbschaftssteuer in den Kantonen auf einen Drittel zurückgegangen.
+</p>
+                        <button class="btn btn-primary" onclick="checkBlanks()" 
+                                style="margin-top: 12px; font-size: 13px; padding: 8px 18px;">
+                            Antwort prüfen
+                        </button>
+                        <div id="blanksResult"></div>
+                    </div>
+                </div>
+
+                <!-- Frage 2: Multiple Choice -->
+                <div class="content-card quiz-section">
+                    <div class="question-card" id="q2">
+                        <h3>2. Was ist laut Gisela Hürlimann der Hauptgrund für den Rückgang?</h3>
+                        <div class="mc-options">
+                            <div class="mc-option" onclick="selectMC('q2', 'a', false)">
+                                A) Bundesgesetze
+                            </div>
+                            <div class="mc-option" onclick="selectMC('q2', 'b', true)">
+                                B) Interkantonaler Steuerwettbewerb
+                            </div>
+                            <div class="mc-option" onclick="selectMC('q2', 'c', false)">
+                                C) Europäischer Druck
+                            </div>
+                            <div class="mc-option" onclick="selectMC('q2', 'd', false)">
+                                D) Inflation
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Frage 3: Richtig/Falsch -->
+                <div class="content-card quiz-section">
+                    <div class="question-card" id="q3">
+                        <h3>3. Die erste Erbschaftssteuer der Schweiz war eine kantonale Steuer.</h3>
+                        <div class="tf-options">
+                            <div class="tf-option true-opt" onclick="selectTF('q3', true, false)">
+                                ✓ Richtig
+                            </div>
+                            <div class="tf-option false-opt" onclick="selectTF('q3', false, true)">
+                                ✗ Falsch (Es war eine nationale Steuer)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Frage 4: Zuordnung -->
+                <div class="content-card quiz-section">
+                    <div class="question-card" id="q4">
+                        <h3>4. Ordne zu: Welches Jahr gehört zu welchem Ereignis?</h3>
+                        <div class="matching-grid" id="matchingGrid">
+                            <div class="matching-item" data-id="a" onclick="selectMatching('a')">
+                                1798
+                            </div>
+                            <div class="matching-item" data-id="1" onclick="selectMatching('1')">
+                                Steuerharmonisierungsgesetz
+                            </div>
+                            <div class="matching-item" data-id="b" onclick="selectMatching('b')">
+                                1990
+                            </div>
+                            <div class="matching-item" data-id="2" onclick="selectMatching('2')">
+                                Erste nationale Erbschaftssteuer
+                            </div>
+                            <div class="matching-item" data-id="c" onclick="selectMatching('c')">
+                                1973
+                            </div>
+                            <div class="matching-item" data-id="3" onclick="selectMatching('3')">
+                                Initiative Landesring
+                            </div>
+                        </div>
+                        <div id="matchingResult"></div>
+                    </div>
+                </div>
+
+                <!-- Frage 5: Single Choice -->
+                <div class="content-card quiz-section">
+                    <div class="question-card" id="q5">
+                        <h3>5. In welcher Epoche wurde die Erbschaftssteuer erstmals eingeführt?</h3>
+                        <div class="mc-options">
+                            <div class="mc-option" onclick="selectMC('q5', 'a', false)">
+                                A) Römisches Reich
+                            </div>
+                            <div class="mc-option" onclick="selectMC('q5', 'b', true)">
+                                B) Französische Revolution
+                            </div>
+                            <div class="mc-option" onclick="selectMC('q5', 'c', false)">
+                                C) Industrielle Revolution
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div id="opinionResult" style="display: none;"></div>
+
+            <!-- Rechte Spalte -->
+            <div>
+                <!-- Frage 6: Richtig/Falsch -->
+                <div class="content-card quiz-section">
+                    <div class="question-card" id="q6">
+                        <h3>6. Die Steuerharmonisierung führte zur Abschaffung der Erbschaftssteuer in vielen Kantonen.</h3>
+                        <div class="tf-options">
+                            <div class="tf-option true-opt" onclick="selectTF('q6', true, true)">
+                                ✓ Richtig
+                            </div>
+                            <div class="tf-option false-opt" onclick="selectTF('q6', false, false)">
+                                ✗ Falsch
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Frage 7: Multiple Choice -->
+                <div class="content-card quiz-section">
+                    <div class="question-card" id="q7">
+                        <h3>7. Welche Partei lancierte 1973 eine Initiative zur Erbschaftssteuer?</h3>
+                        <div class="mc-options">
+                            <div class="mc-option" onclick="selectMC('q7', 'a', false)">
+                                A) SP
+                            </div>
+                            <div class="mc-option" onclick="selectMC('q7', 'b', true)">
+                                B) Landesring der Unabhängigen
+                            </div>
+                            <div class="mc-option" onclick="selectMC('q7', 'c', false)">
+                                C) FDP
+                            </div>
+                            <div class="mc-option" onclick="selectMC('q7', 'd', false)">
+                                D) CVP
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Frage 8: Sortieren -->
+                <div class="content-card quiz-section">
+                    <div class="question-card" id="q8">
+                        <h3>8. Sortiere chronologisch (alt → neu):</h3>
+                        <div class="sortable-list" id="sortableList">
+                            <div class="sortable-item" draggable="true" data-order="3">
+                                Steuerharmonisierungsgesetz
+                            </div>
+                            <div class="sortable-item" draggable="true" data-order="1">
+                                Helvetische Republik
+                            </div>
+                            <div class="sortable-item" draggable="true" data-order="2">
+                                Initiative Landesring
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="checkOrder()" 
+                                style="margin-top: 12px; font-size: 13px; padding: 8px 18px;">
+                            Reihenfolge prüfen
+                        </button>
+                        <div id="orderResult"></div>
+                    </div>
+                </div>
+
+                <!-- Frage 9: Richtig/Falsch -->
+                <div class="content-card quiz-section">
+                    <div class="question-card" id="q9">
+                        <h3>9. Zug und Schwyz waren Kantone mit aggressivem Steuerwettbewerb.</h3>
+                        <div class="tf-options">
+                            <div class="tf-option true-opt" onclick="selectTF('q9', true, true)">
+                                ✓ Richtig
+                            </div>
+                            <div class="tf-option false-opt" onclick="selectTF('q9', false, false)">
+                                ✗ Falsch
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Frage 10: Single Choice -->
+                <div class="content-card quiz-section">
+                    <div class="question-card" id="q10">
+                        <h3>10. Wer profitiert heute am meisten vom Fehlen der Erbschaftssteuer?</h3>
+                        <div class="mc-options">
+                            <div class="mc-option" onclick="selectMC('q10', 'a', true)">
+                                A) Direkte Nachkommen mit grossen Erbschaften
+                            </div>
+                            <div class="mc-option" onclick="selectMC('q10', 'b', false)">
+                                B) Der Mittelstand
+                            </div>
+                            <div class="mc-option" onclick="selectMC('q10', 'c', false)">
+                                C) Kleine Unternehmen
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit All Button -->
+        <div style="text-align: center; margin: 25px 0;">
+            <button class="btn btn-primary" id="submitAll" onclick="submitAllQuiz()">
+                Alle Antworten abschicken
+            </button>
+            <div id="finalResult" style="margin-top: 15px;"></div>
         </div>
 
         <!-- Completion -->
         <div class="completion-section">
-            <h2>✅ Seite abschließen</h2>
-            <p>Klicke hier, wenn du diese Lerneinheit abgeschlossen hast.</p>
-            <button class="btn btn-primary" onclick="completeLesson()" style="margin-top: 20px; background: white; color: var(--hep-blue);">
+            <h2>✅ Lerneinheit abschließen</h2>
+            <p style="margin: 15px 0;">Hast du alle Aufgaben bearbeitet?</p>
+            <button class="btn" onclick="completeLesson()" 
+                    style="background: white; color: var(--hep-blue);">
                 Als abgeschlossen markieren
             </button>
             <div id="completionResult" style="display: none;"></div>
@@ -300,30 +657,23 @@
 
         <!-- Navigation -->
         <div class="navigation">
-            <a href="../index.html" class="nav-btn">← Zurück zur Startseite</a>
+            <a href="../index.html" class="nav-btn">← Startseite</a>
             <a href="../dashboard.html" class="nav-btn">Dashboard →</a>
         </div>
     </div>
 
     <script src="../firebase-config.js"></script>
     <script>
-        // Login-Check
         if (!isUserLoggedIn()) {
             window.location.href = '../login.html';
         }
 
         const PAGE_NAME = 'radio';
-        
-        // Zeit-Tracking starten
         startTimeTracking(PAGE_NAME);
 
         // Audio-Tracking
         const audio = document.getElementById('audioPlayer');
         let audioWatched = false;
-        
-        audio.addEventListener('play', () => {
-            console.log('Audio gestartet');
-        });
         
         audio.addEventListener('ended', () => {
             if (!audioWatched) {
@@ -339,40 +689,168 @@
             }
         });
 
-        // Quiz-Logik
-        let quizAnswers = {};
-        let answeredQuestions = 0;
-        const totalQuestions = 2;
-        
-        function selectAnswer(questionId, answer, isCorrect) {
-            const question = document.getElementById(questionId);
-            const options = question.querySelectorAll('.quiz-option');
-            
-            // Alte Auswahl entfernen
-            options.forEach(opt => opt.classList.remove('selected'));
-            
-            // Neue Auswahl markieren
+        // Poll
+        function submitPoll(rating) {
+            event.target.parentElement.querySelectorAll('.poll-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
             event.target.classList.add('selected');
             
-            // Antwort speichern
-            if (!quizAnswers[questionId]) {
-                answeredQuestions++;
-            }
-            quizAnswers[questionId] = { answer, isCorrect };
+            const userCode = getCurrentUserCode();
+            database.ref(`users/${userCode}/polls/${PAGE_NAME}/informativeness`).set({
+                rating: rating,
+                timestamp: getTimestamp()
+            });
             
-            // Submit-Button aktivieren wenn alle beantwortet
-            document.getElementById('submitQuiz').disabled = answeredQuestions < totalQuestions;
+            document.getElementById('pollResult').textContent = '✅ Danke für deine Bewertung!';
+            document.getElementById('pollResult').style.display = 'block';
         }
-        
-        function submitQuiz() {
-            const correctCount = Object.values(quizAnswers).filter(a => a.isCorrect).length;
-            const score = correctCount;
-            const maxScore = totalQuestions;
+
+        // Quiz State
+        let quizAnswers = {
+            mc: {},
+            tf: {},
+            blanks: false,
+            matching: false,
+            order: false
+        };
+
+        // Lückentext
+        function checkBlanks() {
+            const blank1 = document.getElementById('blank1').value.trim();
+            const blank2 = document.getElementById('blank2').value.trim();
             
-            // Antworten visualisieren
-            Object.keys(quizAnswers).forEach(qId => {
+            const correct1 = blank1 === '1990';
+            const correct2 = blank2 === '2019';
+            
+            document.getElementById('blank1').className = 'fill-blank-input ' + (correct1 ? 'correct' : 'incorrect');
+            document.getElementById('blank2').className = 'fill-blank-input ' + (correct2 ? 'correct' : 'incorrect');
+            
+            const resultDiv = document.getElementById('blanksResult');
+            if (correct1 && correct2) {
+                resultDiv.innerHTML = '<div class="success-message">✓ Richtig! 1990-2019</div>';
+                quizAnswers.blanks = true;
+            } else {
+                resultDiv.innerHTML = '<div class="success-message" style="background:#fee;color:#c33;">✗ Nicht ganz richtig. Tipp: Der Zeitraum war 1990-2019.</div>';
+            }
+        }
+
+        // Multiple Choice
+        function selectMC(qId, answer, isCorrect) {
+            const question = document.getElementById(qId);
+            const options = question.querySelectorAll('.mc-option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            event.target.classList.add('selected');
+            quizAnswers.mc[qId] = { answer, isCorrect };
+        }
+
+        // True/False
+        function selectTF(qId, answer, isCorrect) {
+            const question = document.getElementById(qId);
+            const options = question.querySelectorAll('.tf-option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            event.target.classList.add('selected');
+            quizAnswers.tf[qId] = { answer, isCorrect };
+        }
+
+        // Matching
+        let matchingSelected = null;
+        const matchingPairs = { 'a': '2', 'b': '1', 'c': '3' };
+        let matchedPairs = 0;
+
+        function selectMatching(id) {
+            const item = event.target;
+            
+            if (item.classList.contains('matched')) return;
+            
+            if (!matchingSelected) {
+                item.classList.add('selected');
+                matchingSelected = id;
+            } else {
+                const firstId = matchingSelected;
+                const secondId = id;
+                
+                document.querySelectorAll('.matching-item').forEach(i => i.classList.remove('selected'));
+                
+                const isCorrect = matchingPairs[firstId] === secondId || matchingPairs[secondId] === firstId;
+                
+                if (isCorrect) {
+                    document.querySelector(`[data-id="${firstId}"]`).classList.add('matched');
+                    document.querySelector(`[data-id="${secondId}"]`).classList.add('matched');
+                    matchedPairs++;
+                    
+                    if (matchedPairs === 3) {
+                        document.getElementById('matchingResult').innerHTML = 
+                            '<div class="success-message">✓ Alle richtig zugeordnet!</div>';
+                        quizAnswers.matching = true;
+                    }
+                } else {
+                    document.querySelector(`[data-id="${firstId}"]`).classList.add('wrong');
+                    document.querySelector(`[data-id="${secondId}"]`).classList.add('wrong');
+                    setTimeout(() => {
+                        document.querySelectorAll('.matching-item').forEach(i => i.classList.remove('wrong'));
+                    }, 1000);
+                }
+                
+                matchingSelected = null;
+            }
+        }
+
+        // Sortable
+        const correctOrder = ['Helvetische Republik', 'Initiative Landesring', 'Steuerharmonisierungsgesetz'];
+        let draggedElement = null;
+
+        document.querySelectorAll('.sortable-item').forEach(item => {
+            item.addEventListener('dragstart', function() {
+                draggedElement = this;
+                setTimeout(() => this.classList.add('dragging'), 0);
+            });
+            
+            item.addEventListener('dragend', function() {
+                this.classList.remove('dragging');
+            });
+            
+            item.addEventListener('dragover', function(e) {
+                e.preventDefault();
+            });
+            
+            item.addEventListener('drop', function(e) {
+                e.preventDefault();
+                if (draggedElement !== this) {
+                    const allItems = [...this.parentNode.children];
+                    const draggedIndex = allItems.indexOf(draggedElement);
+                    const targetIndex = allItems.indexOf(this);
+                    
+                    if (draggedIndex < targetIndex) {
+                        this.parentNode.insertBefore(draggedElement, this.nextSibling);
+                    } else {
+                        this.parentNode.insertBefore(draggedElement, this);
+                    }
+                }
+            });
+        });
+
+        function checkOrder() {
+            const items = document.querySelectorAll('.sortable-item');
+            const currentOrder = Array.from(items).map(item => item.textContent.trim());
+            
+            const isCorrect = JSON.stringify(currentOrder) === JSON.stringify(correctOrder);
+            
+            const resultDiv = document.getElementById('orderResult');
+            if (isCorrect) {
+                resultDiv.innerHTML = '<div class="success-message">✓ Richtige Reihenfolge!</div>';
+                quizAnswers.order = true;
+            } else {
+                resultDiv.innerHTML = '<div class="success-message" style="background:#fee;color:#c33;">✗ Noch nicht richtig. Tipp: Ältestes zuerst!</div>';
+            }
+        }
+
+        // Submit All
+        function submitAllQuiz() {
+            // Alle MC/TF Antworten visualisieren
+            Object.keys(quizAnswers.mc).forEach(qId => {
                 const question = document.getElementById(qId);
-                const options = question.querySelectorAll('.quiz-option');
+                const options = question.querySelectorAll('.mc-option');
                 options.forEach(opt => {
                     const isSelected = opt.classList.contains('selected');
                     const isCorrectOption = opt.onclick.toString().includes('true');
@@ -382,66 +860,66 @@
                     } else if (isSelected) {
                         opt.classList.add('incorrect');
                     }
-                    opt.onclick = null; // Deaktivieren
+                    opt.onclick = null;
                 });
             });
+
+            Object.keys(quizAnswers.tf).forEach(qId => {
+                const question = document.getElementById(qId);
+                const options = question.querySelectorAll('.tf-option');
+                options.forEach(opt => {
+                    const isSelected = opt.classList.contains('selected');
+                    const isCorrectOption = opt.onclick.toString().includes(', true)');
+                    
+                    if (isCorrectOption) {
+                        opt.classList.add('correct');
+                    } else if (isSelected) {
+                        opt.classList.add('incorrect');
+                    }
+                    opt.onclick = null;
+                });
+            });
+
+            // Score berechnen
+            const mcCorrect = Object.values(quizAnswers.mc).filter(a => a.isCorrect).length;
+            const tfCorrect = Object.values(quizAnswers.tf).filter(a => a.isCorrect).length;
+            const bonusCorrect = (quizAnswers.blanks ? 1 : 0) + (quizAnswers.matching ? 1 : 0) + (quizAnswers.order ? 1 : 0);
             
-            // Ergebnis anzeigen
-            const resultDiv = document.getElementById('quizResult');
-            const percentage = Math.round((score / maxScore) * 100);
-            resultDiv.innerHTML = `
+            const totalCorrect = mcCorrect + tfCorrect + bonusCorrect;
+            const totalQuestions = 10;
+            const percentage = Math.round((totalCorrect / totalQuestions) * 100);
+
+            document.getElementById('finalResult').innerHTML = `
                 <div class="success-message">
                     <strong>Quiz abgeschlossen!</strong><br>
-                    Du hast ${score} von ${maxScore} Fragen richtig beantwortet (${percentage}%).
+                    ${totalCorrect} von ${totalQuestions} Aufgaben richtig (${percentage}%)
                 </div>
             `;
-            resultDiv.style.display = 'block';
-            
-            // Quiz-Ergebnis tracken
-            const answerDetails = Object.entries(quizAnswers).map(([q, a]) => ({
-                question: q,
-                answer: a.answer,
-                correct: a.isCorrect
-            }));
-            
-            trackQuizResult(PAGE_NAME, score, maxScore, answerDetails);
-            
-            // Submit-Button deaktivieren
-            document.getElementById('submitQuiz').disabled = true;
-            document.getElementById('submitQuiz').textContent = '✅ Quiz abgeschlossen';
-        }
 
-        // Meinungsumfrage
-        function submitOpinion(opinion) {
-            trackLike(PAGE_NAME, opinion);
-            
-            const resultDiv = document.getElementById('opinionResult');
-            resultDiv.innerHTML = `
-                <div class="success-message" style="margin-top: 20px;">
-                    ✅ Deine Meinung wurde gespeichert!
-                </div>
-            `;
-            resultDiv.style.display = 'block';
-            
-            // Buttons deaktivieren
-            document.querySelectorAll('.opinion-buttons .btn').forEach(btn => {
-                btn.disabled = true;
+            // Firebase tracking
+            trackQuizResult(PAGE_NAME, totalCorrect, totalQuestions, {
+                mc: quizAnswers.mc,
+                tf: quizAnswers.tf,
+                blanks: quizAnswers.blanks,
+                matching: quizAnswers.matching,
+                order: quizAnswers.order
             });
+
+            document.getElementById('submitAll').disabled = true;
+            document.getElementById('submitAll').textContent = '✅ Quiz abgeschlossen';
         }
 
-        // Lesson abschließen
+        // Completion
         function completeLesson() {
             trackPageCompletion(PAGE_NAME);
             
-            const resultDiv = document.getElementById('completionResult');
-            resultDiv.innerHTML = `
-                <div class="success-message" style="margin-top: 20px;">
+            document.getElementById('completionResult').innerHTML = `
+                <div class="success-message">
                     🎉 Lerneinheit erfolgreich abgeschlossen!
                 </div>
             `;
-            resultDiv.style.display = 'block';
+            document.getElementById('completionResult').style.display = 'block';
             
-            // Button deaktivieren
             event.target.disabled = true;
             event.target.textContent = '✅ Abgeschlossen';
         }
