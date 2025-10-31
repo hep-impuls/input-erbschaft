@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hep - Dashboard mit Leaderboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --hep-blue: #003876;
+            --hep-turquoise: #5eb9b4;
+            --hep-light-gray: #f5f5f5;
+            --hep-dark-gray: #333;
+            --gold: #FFD700;
+            --silver: #C0C0C0;
+            --bronze: #CD7F32;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--hep-dark-gray);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-placeholder {
+            width: 150px;
+            height: 50px;
+            background-color: var(--hep-blue);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        nav {
+            display: flex;
+            gap: 30px;
+        }
+
+        nav a {
+            color: var(--hep-blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--hep-turquoise);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .page-title {
+            text-align: center;
+            color: var(--hep-blue);
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 50px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .panel {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .panel-title {
+            color: var(--hep-blue);
+            font-size: 2em;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-ring-medium {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
+        }
+
+        .ring-bg {
+            fill: none;
+            stroke: #e0e0e0;
+            stroke-width: 20;
+        }
+
+        .ring-progress {
+            fill: none;
+            stroke: url(#gradient);
+            stroke-width: 20;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .ring-text-medium {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .ring-percentage {
+            font-size: 3em;
+            font-weight: bold;
+            color: var(--hep-blue);
+            display: block;
+        }
+
+        .ring-label {
+            font-size: 1em;
+            color: #666;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 20px;
+            background: var(--hep-light-gray);
+            border-radius: 12px;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--hep-turquoise);
+            display: block;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+
+        .leaderboard {
+            margin-top: 20px;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            background: var(--hep-light-gray);
+            border-radius: 10px;
+            transition: transform 0.2s;
+        }
+
+        .leaderboard-item:hover {
+            transform: translateX(5px);
+        }
+
+        .leaderboard-item.current-user {
+            background: linear-gradient(135deg, #e8f5f4 0%, var(--hep-light-gray) 100%);
+            border: 2px solid var(--hep-turquoise);
+            font-weight: bold;
+        }
+
+        .rank {
+            font-size: 1.5em;
+            font-weight: bold;
+            width: 50px;
+            text-align: center;
+        }
+
+        .rank-1 { color: var(--gold); }
+        .rank-2 { color: var(--silver); }
+        .rank-3 { color: var(--bronze); }
+
+        .user-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--hep-blue) 0%, var(--hep-turquoise) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .username {
+            font-size: 1.1em;
+        }
+
+        .progress-indicator {
+            display: flex;
+            gap: 5px;
+        }
+
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e0e0e0;
+        }
+
+        .progress-dot.completed {
+            background: var(--hep-turquoise);
+        }
+
+        .score {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--hep-blue);
+            margin-left: 20px;
+        }
+
+        .collective-stats {
+            margin-top: 25px;
+        }
+
+        .stat-bar {
+            margin-bottom: 20px;
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .stat-name {
+            font-weight: 600;
+            color: var(--hep-blue);
+        }
+
+        .stat-value {
+            color: #666;
+        }
+
+        .bar-container {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--hep-blue) 0%, var(--hep-turquoise) 100%);
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .username-setup {
+            background: var(--hep-light-gray);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+
+        .username-input {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .username-input input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .username-input button {
+            background: var(--hep-turquoise);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .username-input button:hover {
+            background: var(--hep-blue);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .content-item {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+        }
+
+        .content-item.completed {
+            border: 2px solid var(--hep-turquoise);
+        }
+
+        .content-icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .content-title {
+            color: var(--hep-blue);
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .action-button {
+            display: block;
+            text-align: center;
+            background: var(--hep-turquoise);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin-top: 10px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .action-button:hover {
+            background: var(--hep-blue);
+        }
+
+        footer {
+            background-color: var(--hep-blue);
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin-top: 60px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2em;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-placeholder">hep</div>
+        <nav>
+            <a href="index.html">Start</a>
+            <a href="dashboard.html" style="color: var(--hep-turquoise);">Dashboard</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title">🏆 Dashboard & Leaderboard</h1>
+        <p class="page-subtitle">Ihr persönlicher Fortschritt und die Community-Rangliste</p>
+
+        <div class="username-setup" id="username-setup">
+            <h3 style="color: var(--hep-blue); margin-bottom: 10px;">👤 Ihr Lerner-Name</h3>
+            <p style="color: #666; margin-bottom: 15px;">Geben Sie einen Namen oder Initialen ein, um im Leaderboard zu erscheinen.</p>
+            <div class="username-input">
+                <input type="text" id="username-input" placeholder="z.B. Max M. oder MM" maxlength="20">
+                <button onclick="setUsername()">Speichern</button>
+            </div>
+            <p style="color: #999; font-size: 0.9em; margin-top: 10px;">
+                ℹ️ Ihr Name wird öffentlich im Leaderboard sichtbar sein.
+            </p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Personal Progress Panel -->
+            <div class="panel">
+                <h2 class="panel-title">📊 Ihr Fortschritt</h2>
+                <div class="progress-ring-medium">
+                    <svg width="200" height="200">
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#003876;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#5eb9b4;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="ring-bg" cx="100" cy="100" r="80"></circle>
+                        <circle class="ring-progress" id="personal-ring" cx="100" cy="100" r="80"
+                            stroke-dasharray="502.4" stroke-dashoffset="502.4"></circle>
+                    </svg>
+                    <div class="ring-text-medium">
+                        <span class="ring-percentage" id="personal-percentage">0%</span>
+                        <span class="ring-label">abgeschlossen</span>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <span class="stat-number" id="completed-count">0</span>
+                        <div class="stat-label">Abgeschlossen</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number" id="remaining-count">4</span>
+                        <div class="stat-label">Verbleibend</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number" id="your-rank">-</span>
+                        <div class="stat-label">Ihre Platzierung</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number" id="badge-icon">🎯</span>
+                        <div class="stat-label" id="badge-text">Starter</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard Panel -->
+            <div class="panel">
+                <h2 class="panel-title">🏆 Leaderboard</h2>
+                <p style="color: #666; margin-bottom: 20px;">Die aktivsten Lernenden der Community</p>
+                <div class="leaderboard" id="leaderboard">
+                    <div class="loading">Lade Leaderboard...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Collective Statistics -->
+        <div class="panel" style="margin-bottom: 40px;">
+            <h2 class="panel-title">👥 Community-Statistiken</h2>
+            <p style="color: #666; margin-bottom: 25px;">
+                Wie viele Lernende haben welche Inhalte bereits abgeschlossen?
+            </p>
+            <div class="collective-stats">
+                <div class="stat-bar">
+                    <div class="stat-header">
+                        <span class="stat-name">🎙️ Radiobeitrag</span>
+                        <span class="stat-value" id="radio-stat">0 Personen</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill" id="radio-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="stat-bar">
+                    <div class="stat-header">
+                        <span class="stat-name">📰 Artikel 1: Super-Sonderfall</span>
+                        <span class="stat-value" id="article1-stat">0 Personen</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill" id="article1-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="stat-bar">
+                    <div class="stat-header">
+                        <span class="stat-name">📰 Artikel 2: Alternativen</span>
+                        <span class="stat-value" id="article2-stat">0 Personen</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill" id="article2-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="stat-bar">
+                    <div class="stat-header">
+                        <span class="stat-name">📰 Artikel 3: Multimillionär-Ranking</span>
+                        <span class="stat-value" id="article3-stat">0 Personen</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill" id="article3-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Links to Content -->
+        <h2 style="color: var(--hep-blue); font-size: 2em; margin-bottom: 25px; text-align: center;">
+            📚 Direkt zu den Inhalten
+        </h2>
+        <div class="content-grid">
+            <div class="content-item" id="item-radio">
+                <div class="content-icon">🎙️</div>
+                <div class="content-title">Radiobeitrag</div>
+                <a href="radio.html" class="action-button">Öffnen →</a>
+            </div>
+            <div class="content-item" id="item-article1">
+                <div class="content-icon">🌍</div>
+                <div class="content-title">Artikel 1</div>
+                <a href="artikel1.html" class="action-button">Öffnen →</a>
+            </div>
+            <div class="content-item" id="item-article2">
+                <div class="content-icon">💡</div>
+                <div class="content-title">Artikel 2</div>
+                <a href="artikel2.html" class="action-button">Öffnen →</a>
+            </div>
+            <div class="content-item" id="item-article3">
+                <div class="content-icon">📊</div>
+                <div class="content-title">Artikel 3</div>
+                <a href="artikel3.html" class="action-button">Öffnen →</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2025 hep Verlag AG | Gutenbergstrasse 31 | CH-3001 Bern | +41 31 310 29 29 | hep-verlag.ch</p>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // WICHTIG: Ersetzen Sie diese Konfiguration mit Ihrer eigenen Firebase-Konfiguration
+        // Siehe Setup-Anleitung in der README
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, get, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        // Firebase Konfiguration - HIER IHRE DATEN EINFÜGEN!
+        const firebaseConfig = {
+            apiKey: "IHRE_API_KEY",
+            authDomain: "IHRE_AUTH_DOMAIN",
+            databaseURL: "IHRE_DATABASE_URL",
+            projectId: "IHRE_PROJECT_ID",
+            storageBucket: "IHRE_STORAGE_BUCKET",
+            messagingSenderId: "IHRE_MESSAGING_SENDER_ID",
+            appId: "IHRE_APP_ID"
+        };
+
+        // Firebase initialisieren
+        let app, database;
+        try {
+            app = initializeApp(firebaseConfig);
+            database = getDatabase(app);
+            console.log('Firebase verbunden!');
+        } catch (error) {
+            console.log('Firebase nicht konfiguriert - Demo-Modus aktiv');
+        }
+
+        // User ID generieren oder laden
+        let userId = localStorage.getItem('hep_user_id');
+        let username = localStorage.getItem('hep_username');
+
+        if (!userId) {
+            userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('hep_user_id', userId);
+        }
+
+        // Username Setup anzeigen/verstecken
+        if (username) {
+            document.getElementById('username-setup').style.display = 'none';
+        }
+
+        // Username setzen
+        window.setUsername = async function() {
+            const input = document.getElementById('username-input');
+            const name = input.value.trim();
+            
+            if (!name) {
+                alert('Bitte geben Sie einen Namen ein.');
+                return;
+            }
+            
+            username = name;
+            localStorage.setItem('hep_username', username);
+            document.getElementById('username-setup').style.display = 'none';
+            
+            await syncProgress();
+        }
+
+        // Fortschritt zu Firebase synchronisieren
+        async function syncProgress() {
+            if (!database) return;
+
+            try {
+                const progress = JSON.parse(localStorage.getItem('hep_progress') || '{}');
+                const completed = Object.values(progress).filter(v => v).length;
+                
+                const userData = {
+                    username: username || 'Anonym',
+                    completed: completed,
+                    radio: progress.radio || false,
+                    article1: progress.article1 || false,
+                    article2: progress.article2 || false,
+                    article3: progress.article3 || false,
+                    lastUpdate: Date.now()
+                };
+                
+                await set(ref(database, 'users/' + userId), userData);
+                console.log('Fortschritt synchronisiert!');
+            } catch (error) {
+                console.error('Fehler beim Synchronisieren:', error);
+            }
+        }
+
+        // Dashboard laden
+        async function loadDashboard() {
+            // Persönlichen Fortschritt anzeigen
+            const progress = JSON.parse(localStorage.getItem('hep_progress') || '{}');
+            const items = ['radio', 'article1', 'article2', 'article3'];
+            let completed = 0;
+            
+            items.forEach(item => {
+                if (progress[item]) {
+                    completed++;
+                    document.getElementById(`item-${item}`).classList.add('completed');
+                }
+            });
+            
+            const percentage = Math.round((completed / items.length) * 100);
+            document.getElementById('personal-percentage').textContent = percentage + '%';
+            document.getElementById('completed-count').textContent = completed;
+            document.getElementById('remaining-count').textContent = items.length - completed;
+            
+            const circumference = 502.4;
+            const offset = circumference - (percentage / 100) * circumference;
+            document.getElementById('personal-ring').style.strokeDashoffset = offset;
+            
+            // Badge aktualisieren
+            const badges = {
+                0: { icon: '🎯', text: 'Starter' },
+                1: { icon: '⭐', text: 'Motiviert' },
+                2: { icon: '🔥', text: 'Engagiert' },
+                3: { icon: '💎', text: 'Fast Experte' },
+                4: { icon: '🏆', text: 'Experte!' }
+            };
+            document.getElementById('badge-icon').textContent = badges[completed].icon;
+            document.getElementById('badge-text').textContent = badges[completed].text;
+            
+            // Leaderboard laden
+            await loadLeaderboard();
+        }
+
+        // Leaderboard von Firebase laden
+        async function loadLeaderboard() {
+            if (!database) {
+                useDemoData();
+                return;
+            }
+
+            try {
+                const usersRef = ref(database, 'users');
+                
+                // Echtzeit-Updates aktivieren
+                onValue(usersRef, (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        const users = Object.keys(data).map(key => ({
+                            id: key,
+                            ...data[key]
+                        }));
+                        
+                        users.sort((a, b) => b.completed - a.completed);
+                        
+                        displayLeaderboard(users);
+                        displayCollectiveStats(users);
+                    } else {
+                        useDemoData();
+                    }
+                });
+            } catch (error) {
+                console.error('Fehler beim Laden:', error);
+                useDemoData();
+            }
+        }
+
+        // Leaderboard anzeigen
+        function displayLeaderboard(users) {
+            const leaderboard = document.getElementById('leaderboard');
+            leaderboard.innerHTML = '';
+            
+            const topUsers = users.slice(0, 10);
+            const currentUserIndex = users.findIndex(u => u.id === userId);
+            
+            if (currentUserIndex !== -1) {
+                document.getElementById('your-rank').textContent = '#' + (currentUserIndex + 1);
+            }
+            
+            topUsers.forEach((user, index) => {
+                const isCurrentUser = user.id === userId;
+                const rank = index + 1;
+                
+                const item = document.createElement('div');
+                item.className = 'leaderboard-item' + (isCurrentUser ? ' current-user' : '');
+                
+                const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
+                const rankClass = `rank-${rank}`;
+                
+                item.innerHTML = `
+                    <div class="rank ${rankClass}">${medals[rank] || rank}</div>
+                    <div class="user-info">
+                        <div class="avatar">${user.username.charAt(0).toUpperCase()}</div>
+                        <div class="username">${user.username}${isCurrentUser ? ' (Sie)' : ''}</div>
+                        <div class="progress-indicator">
+                            ${['radio', 'article1', 'article2', 'article3'].map(key => 
+                                `<div class="progress-dot ${user[key] ? 'completed' : ''}"></div>`
+                            ).join('')}
+                        </div>
+                    </div>
+                    <div class="score">${user.completed}/4</div>
+                `;
+                
+                leaderboard.appendChild(item);
+            });
+        }
+
+        // Community-Statistiken anzeigen
+        function displayCollectiveStats(users) {
+            const stats = {
+                radio: 0,
+                article1: 0,
+                article2: 0,
+                article3: 0
+            };
+            
+            users.forEach(user => {
+                Object.keys(stats).forEach(key => {
+                    if (user[key]) stats[key]++;
+                });
+            });
+            
+            const total = users.length || 1;
+            
+            Object.keys(stats).forEach(key => {
+                const count = stats[key];
+                const percentage = Math.round((count / total) * 100);
+                
+                document.getElementById(`${key}-stat`).textContent = `${count} Personen (${percentage}%)`;
+                document.getElementById(`${key}-bar`).style.width = percentage + '%';
+                document.getElementById(`${key}-bar`).textContent = percentage + '%';
+            });
+        }
+
+        // Demo-Daten (Fallback)
+        function useDemoData() {
+            const demoUsers = [
+                { id: 'demo1', username: 'Sophie M.', completed: 4, radio:true, article1:true, article2:true, article3:true },
+                { id: 'demo2', username: 'Lukas B.', completed: 4, radio:true, article1:true, article2:true, article3:true },
+                { id: 'demo3', username: 'Anna K.', completed: 3, radio:true, article1:true, article2:true, article3:false },
+                { id: 'demo4', username: 'Max S.', completed: 3, radio:true, article1:true, article2:false, article3:true },
+                { id: 'demo5', username: 'Julia W.', completed: 3, radio:true, article1:false, article2:true, article3:true },
+                { id: 'demo6', username: 'Tom R.', completed: 2, radio:true, article1:true, article2:false, article3:false },
+                { id: 'demo7', username: 'Lisa H.', completed: 2, radio:false, article1:true, article2:true, article3:false },
+                { id: 'demo8', username: 'Ben F.', completed: 2, radio:true, article1:false, article2:false, article3:true },
+                { id: 'demo9', username: 'Emma L.', completed: 1, radio:true, article1:false, article2:false, article3:false },
+                { id: 'demo10', username: 'Paul G.', completed: 1, radio:false, article1:true, article2:false, article3:false }
+            ];
+            
+            displayLeaderboard(demoUsers);
+            displayCollectiveStats(demoUsers);
+        }
+
+        // Initial laden und Auto-Sync aktivieren
+        window.addEventListener('load', async () => {
+            await loadDashboard();
+            
+            // Automatisch synchronisieren bei Änderungen
+            setInterval(async () => {
+                if (username) {
+                    await syncProgress();
+                }
+            }, 30000); // Alle 30 Sekunden
+        });
+    </script>
+</body>
+</html>
