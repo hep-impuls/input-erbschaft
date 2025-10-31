@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hep - Radiobeitrag</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --hep-blue: #003876;
+            --hep-turquoise: #5eb9b4;
+            --hep-light-gray: #f5f5f5;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .logo-placeholder {
+            width: 150px;
+            height: 50px;
+            background-color: var(--hep-blue);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            color: var(--hep-blue);
+            font-size: 42px;
+            margin-bottom: 20px;
+        }
+
+        .audio-player {
+            background: var(--hep-light-gray);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+
+        .audio-player audio {
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .quiz-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 30px 0;
+        }
+
+        .quiz-question {
+            margin-bottom: 25px;
+        }
+
+        .quiz-question h3 {
+            color: var(--hep-blue);
+            margin-bottom: 15px;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quiz-option {
+            padding: 15px;
+            background: var(--hep-light-gray);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .quiz-option:hover {
+            background: #e0e0e0;
+        }
+
+        .quiz-option.selected {
+            border-color: var(--hep-turquoise);
+            background: rgba(94, 185, 180, 0.1);
+        }
+
+        .quiz-option.correct {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+        }
+
+        .quiz-option.incorrect {
+            border-color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+        }
+
+        .opinion-section {
+            background: var(--hep-light-gray);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .opinion-section h3 {
+            color: var(--hep-blue);
+            margin-bottom: 20px;
+        }
+
+        .opinion-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-pro {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-neutral {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-contra {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--hep-blue), var(--hep-turquoise));
+            color: white;
+        }
+
+        .completion-section {
+            background: linear-gradient(135deg, var(--hep-blue), var(--hep-turquoise));
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .completion-section h2 {
+            margin-bottom: 20px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+
+        .nav-btn {
+            padding: 12px 30px;
+            background: var(--hep-turquoise);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: var(--hep-blue);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-placeholder">hep</div>
+    </header>
+
+    <div class="container">
+        <h1>🎙️ Radiobeitrag zur Initiative</h1>
+        <p>Höre den Radiobeitrag und beantworte anschließend die Fragen.</p>
+
+        <!-- Audio Player -->
+        <div class="audio-player">
+            <h2>Radiobeitrag</h2>
+            <audio id="audioPlayer" controls>
+                <source src="../assets/media/audio/radiobeitrag.mp3" type="audio/mpeg">
+                Dein Browser unterstützt das Audio-Element nicht.
+            </audio>
+        </div>
+
+        <!-- Quiz -->
+        <div class="quiz-section">
+            <h2>📝 Quiz zum Radiobeitrag</h2>
+            
+            <div class="quiz-question" id="q1">
+                <h3>1. Wie hoch ist der geplante Steuersatz bei der Initiative?</h3>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="selectAnswer('q1', 'a', false)">A) 20%</div>
+                    <div class="quiz-option" onclick="selectAnswer('q1', 'b', true)">B) 50%</div>
+                    <div class="quiz-option" onclick="selectAnswer('q1', 'c', false)">C) 30%</div>
+                    <div class="quiz-option" onclick="selectAnswer('q1', 'd', false)">D) 40%</div>
+                </div>
+            </div>
+
+            <div class="quiz-question" id="q2">
+                <h3>2. Ab welchem Betrag würde die Steuer greifen?</h3>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="selectAnswer('q2', 'a', false)">A) 1 Million CHF</div>
+                    <div class="quiz-option" onclick="selectAnswer('q2', 'b', false)">B) 5 Millionen CHF</div>
+                    <div class="quiz-option" onclick="selectAnswer('q2', 'c', false)">C) 10 Millionen CHF</div>
+                    <div class="quiz-option" onclick="selectAnswer('q2', 'd', true)">D) 50 Millionen CHF</div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="submitQuiz" onclick="submitQuiz()" disabled>
+                Quiz abschicken
+            </button>
+            
+            <div id="quizResult" style="display: none;"></div>
+        </div>
+
+        <!-- Meinungsumfrage -->
+        <div class="opinion-section">
+            <h3>💭 Was ist deine Meinung zur Initiative?</h3>
+            <div class="opinion-buttons">
+                <button class="btn btn-pro" onclick="submitOpinion('pro')">👍 Dafür</button>
+                <button class="btn btn-neutral" onclick="submitOpinion('neutral')">🤷 Unentschieden</button>
+                <button class="btn btn-contra" onclick="submitOpinion('contra')">👎 Dagegen</button>
+            </div>
+            <div id="opinionResult" style="display: none;"></div>
+        </div>
+
+        <!-- Completion -->
+        <div class="completion-section">
+            <h2>✅ Seite abschließen</h2>
+            <p>Klicke hier, wenn du diese Lerneinheit abgeschlossen hast.</p>
+            <button class="btn btn-primary" onclick="completeLesson()" style="margin-top: 20px; background: white; color: var(--hep-blue);">
+                Als abgeschlossen markieren
+            </button>
+            <div id="completionResult" style="display: none;"></div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <a href="../index.html" class="nav-btn">← Zurück zur Startseite</a>
+            <a href="../dashboard.html" class="nav-btn">Dashboard →</a>
+        </div>
+    </div>
+
+    <script src="../firebase-config.js"></script>
+    <script>
+        // Login-Check
+        if (!isUserLoggedIn()) {
+            window.location.href = '../login.html';
+        }
+
+        const PAGE_NAME = 'radio';
+        
+        // Zeit-Tracking starten
+        startTimeTracking(PAGE_NAME);
+
+        // Audio-Tracking
+        const audio = document.getElementById('audioPlayer');
+        let audioWatched = false;
+        
+        audio.addEventListener('play', () => {
+            console.log('Audio gestartet');
+        });
+        
+        audio.addEventListener('ended', () => {
+            if (!audioWatched) {
+                audioWatched = true;
+                trackMediaWatched(PAGE_NAME, 'audio', 100);
+            }
+        });
+        
+        audio.addEventListener('timeupdate', () => {
+            if (audio.currentTime / audio.duration > 0.8 && !audioWatched) {
+                audioWatched = true;
+                trackMediaWatched(PAGE_NAME, 'audio', 80);
+            }
+        });
+
+        // Quiz-Logik
+        let quizAnswers = {};
+        let answeredQuestions = 0;
+        const totalQuestions = 2;
+        
+        function selectAnswer(questionId, answer, isCorrect) {
+            const question = document.getElementById(questionId);
+            const options = question.querySelectorAll('.quiz-option');
+            
+            // Alte Auswahl entfernen
+            options.forEach(opt => opt.classList.remove('selected'));
+            
+            // Neue Auswahl markieren
+            event.target.classList.add('selected');
+            
+            // Antwort speichern
+            if (!quizAnswers[questionId]) {
+                answeredQuestions++;
+            }
+            quizAnswers[questionId] = { answer, isCorrect };
+            
+            // Submit-Button aktivieren wenn alle beantwortet
+            document.getElementById('submitQuiz').disabled = answeredQuestions < totalQuestions;
+        }
+        
+        function submitQuiz() {
+            const correctCount = Object.values(quizAnswers).filter(a => a.isCorrect).length;
+            const score = correctCount;
+            const maxScore = totalQuestions;
+            
+            // Antworten visualisieren
+            Object.keys(quizAnswers).forEach(qId => {
+                const question = document.getElementById(qId);
+                const options = question.querySelectorAll('.quiz-option');
+                options.forEach(opt => {
+                    const isSelected = opt.classList.contains('selected');
+                    const isCorrectOption = opt.onclick.toString().includes('true');
+                    
+                    if (isCorrectOption) {
+                        opt.classList.add('correct');
+                    } else if (isSelected) {
+                        opt.classList.add('incorrect');
+                    }
+                    opt.onclick = null; // Deaktivieren
+                });
+            });
+            
+            // Ergebnis anzeigen
+            const resultDiv = document.getElementById('quizResult');
+            const percentage = Math.round((score / maxScore) * 100);
+            resultDiv.innerHTML = `
+                <div class="success-message">
+                    <strong>Quiz abgeschlossen!</strong><br>
+                    Du hast ${score} von ${maxScore} Fragen richtig beantwortet (${percentage}%).
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+            
+            // Quiz-Ergebnis tracken
+            const answerDetails = Object.entries(quizAnswers).map(([q, a]) => ({
+                question: q,
+                answer: a.answer,
+                correct: a.isCorrect
+            }));
+            
+            trackQuizResult(PAGE_NAME, score, maxScore, answerDetails);
+            
+            // Submit-Button deaktivieren
+            document.getElementById('submitQuiz').disabled = true;
+            document.getElementById('submitQuiz').textContent = '✅ Quiz abgeschlossen';
+        }
+
+        // Meinungsumfrage
+        function submitOpinion(opinion) {
+            trackLike(PAGE_NAME, opinion);
+            
+            const resultDiv = document.getElementById('opinionResult');
+            resultDiv.innerHTML = `
+                <div class="success-message" style="margin-top: 20px;">
+                    ✅ Deine Meinung wurde gespeichert!
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+            
+            // Buttons deaktivieren
+            document.querySelectorAll('.opinion-buttons .btn').forEach(btn => {
+                btn.disabled = true;
+            });
+        }
+
+        // Lesson abschließen
+        function completeLesson() {
+            trackPageCompletion(PAGE_NAME);
+            
+            const resultDiv = document.getElementById('completionResult');
+            resultDiv.innerHTML = `
+                <div class="success-message" style="margin-top: 20px;">
+                    🎉 Lerneinheit erfolgreich abgeschlossen!
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+            
+            // Button deaktivieren
+            event.target.disabled = true;
+            event.target.textContent = '✅ Abgeschlossen';
+        }
+    </script>
+</body>
+</html>
