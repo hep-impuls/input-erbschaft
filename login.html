@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hep - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --hep-blue: #003876;
+            --hep-turquoise: #5eb9b4;
+            --hep-light-gray: #f5f5f5;
+            --hep-dark-gray: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--hep-turquoise) 0%, var(--hep-blue) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--hep-dark-gray);
+        }
+
+        .login-container {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .logo-placeholder {
+            width: 120px;
+            height: 40px;
+            background-color: var(--hep-blue);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            margin: 0 auto 30px;
+        }
+
+        h1 {
+            color: var(--hep-blue);
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .animal-icon {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--hep-blue) 0%, var(--hep-turquoise) 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 15px;
+            background: white;
+            color: var(--hep-blue);
+            border: 2px solid var(--hep-blue);
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: var(--hep-light-gray);
+        }
+
+        .success-message {
+            background-color: #efe;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .code-display {
+            background: var(--hep-light-gray);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .code-display h3 {
+            color: var(--hep-blue);
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .code-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--hep-dark-gray);
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid var(--hep-turquoise);
+        }
+
+        .code-info {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+            line-height: 1.6;
+        }
+
+        .btn-copy {
+            background: var(--hep-turquoise);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn-copy:hover {
+            background: var(--hep-blue);
+        }
+
+        .btn-copy.copied {
+            background: #28a745;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 30px 0;
+            color: #999;
+            position: relative;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: #ddd;
+        }
+
+        .divider::before {
+            left: 0;
+        }
+
+        .divider::after {
+            right: 0;
+        }
+
+        .manual-login {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .manual-login.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--hep-blue);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--hep-turquoise);
+            box-shadow: 0 0 0 3px rgba(94, 185, 180, 0.1);
+        }
+
+        .error-message {
+            background-color: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link a {
+            color: var(--hep-blue);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .back-link a:hover {
+            color: var(--hep-turquoise);
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid var(--hep-blue);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 600px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .code-value {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo-placeholder">hep</div>
+        <div class="animal-icon">🎲✨</div>
+        
+        <!-- Erste Anmeldung -->
+        <div id="firstTimeView">
+            <h1>Willkommen!</h1>
+            <p class="subtitle">Generiere deinen persönlichen Zugangs-Code</p>
+
+            <button class="btn-primary" onclick="generateAndLogin()">
+                🎲 Code generieren & einloggen
+            </button>
+
+            <div class="divider">oder</div>
+
+            <button class="btn-secondary" onclick="showManualLogin()">
+                Ich habe bereits einen Code
+            </button>
+
+            <div class="manual-login" id="manualLoginForm">
+                <div class="error-message" id="errorMsg"></div>
+                <form onsubmit="manualLogin(event)">
+                    <div class="form-group">
+                        <label for="existingCode">Gib deinen Code ein</label>
+                        <input 
+                            type="text" 
+                            id="existingCode" 
+                            placeholder="z.B. löwin🌙"
+                            autocomplete="off"
+                        >
+                    </div>
+                    <button type="submit" class="btn-primary">Einloggen</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bereits registriert -->
+        <div id="returningUserView" style="display: none;">
+            <h1>Willkommen zurück!</h1>
+            <p class="subtitle">Dein gespeicherter Code</p>
+
+            <div class="code-display">
+                <h3>Dein persönlicher Code:</h3>
+                <div class="code-value" id="displayCode"></div>
+                <button class="btn-copy" id="copyBtn" onclick="copyCode()">
+                    📋 Code kopieren
+                </button>
+                <div class="code-info">
+                    💡 Mit diesem Code kannst du dich auch auf anderen Geräten einloggen
+                </div>
+            </div>
+
+            <div class="success-message" id="successMsg"></div>
+
+            <button class="btn-primary" onclick="continueToLearning()">
+                Weiter zum Lernen →
+            </button>
+
+            <button class="btn-secondary" onclick="resetCode()">
+                Neuen Code generieren
+            </button>
+        </div>
+
+        <div class="info-box">
+            <strong>ℹ️ So funktioniert's:</strong><br>
+            • Dein Code wird automatisch in diesem Browser gespeichert<br>
+            • Bei jedem Besuch wirst du automatisch eingeloggt<br>
+            • Kopiere den Code, um dich auch auf anderen Geräten einzuloggen
+        </div>
+
+        <div class="back-link">
+            <a href="index.html">← Zurück zur Startseite</a>
+        </div>
+    </div>
+
+    <script>
+        // Tiernamen und Symbole (gekürzte Liste für Performance)
+        const animalNames = [
+            'löwe', 'löwin', 'tiger', 'tigerin', 'bär', 'bärin', 'wolf', 'wölfin',
+            'fuchs', 'füchsin', 'leopard', 'leopardin', 'gepard', 'gepardin',
+            'panther', 'pantherin', 'elefant', 'elefantin', 'giraffe', 'zebra',
+            'affe', 'äffin', 'gorilla', 'gorillin', 'känguru', 'känguruhin',
+            'panda', 'pandain', 'eisbär', 'eisbärin', 'dachs', 'dächsin',
+            'adler', 'adlerin', 'falke', 'falkin', 'eule', 'rabe', 'krähe',
+            'schwalbe', 'papagei', 'papageiin', 'flamingo', 'pelikan', 'pinguin',
+            'delfin', 'delfinin', 'wal', 'walin', 'hai', 'robbe', 'seelöwe',
+            'drache', 'drachin', 'phönix', 'phönixin', 'einhorn', 'einhornin',
+            'greif', 'greifin', 'pegasus', 'pegasusin', 'fee', 'elfe', 'nixe'
+        ];
+
+        const validSymbols = [
+            '⭐', '🌟', '✨', '💫', '🌙', '☀️', '🌞', '☁️', '🌈', '⚡',
+            '❄️', '🔥', '💧', '🌊', '🌸', '🌺', '🌻', '🌼', '🌷', '🌹',
+            '🌿', '🍀', '🍁', '🌱', '🌲', '🌴', '💎', '💍', '👑', '🏆',
+            '🎯', '🎨', '🎭', '🎬', '🎵', '🎶', '🎸', '🎹', '❤️', '💛',
+            '💚', '💙', '💜', '🖤', '💕', '💖', '🎁', '🎈', '🎂', '🍰'
+        ];
+
+        // Prüfen ob bereits Code vorhanden
+        window.addEventListener('load', () => {
+            const savedCode = localStorage.getItem('userCode');
+            
+            if (savedCode) {
+                // User hat bereits einen Code
+                showReturningUser(savedCode);
+            } else {
+                // Erste Anmeldung
+                document.getElementById('firstTimeView').style.display = 'block';
+            }
+        });
+
+        // Zufälligen Code generieren
+        function generateRandomCode() {
+            const animal = animalNames[Math.floor(Math.random() * animalNames.length)];
+            const symbol = validSymbols[Math.floor(Math.random() * validSymbols.length)];
+            return animal + symbol;
+        }
+
+        // Code generieren und einloggen
+        function generateAndLogin() {
+            const code = generateRandomCode();
+            
+            // Code speichern
+            localStorage.setItem('userCode', code);
+            localStorage.setItem('loginTime', new Date().toISOString());
+            
+            // Anzeige wechseln
+            showReturningUser(code);
+            
+            // Nach 2 Sekunden weiterleiten
+            setTimeout(() => {
+                continueToLearning();
+            }, 2000);
+        }
+
+        // Returning User View anzeigen
+        function showReturningUser(code) {
+            document.getElementById('firstTimeView').style.display = 'none';
+            document.getElementById('returningUserView').style.display = 'block';
+            document.getElementById('displayCode').textContent = code;
+            
+            const successMsg = document.getElementById('successMsg');
+            successMsg.textContent = '✅ Erfolgreich eingeloggt!';
+            successMsg.style.display = 'block';
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 3000);
+        }
+
+        // Code kopieren
+        function copyCode() {
+            const code = document.getElementById('displayCode').textContent;
+            const btn = document.getElementById('copyBtn');
+            
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✅ Kopiert!';
+                btn.classList.add('copied');
+                
+                setTimeout(() => {
+                    btn.textContent = '📋 Code kopieren';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Zu Lernseiten weiterleiten
+        function continueToLearning() {
+            window.location.href = 'lernseiten/radio.html';
+        }
+
+        // Neuen Code generieren (Reset)
+        function resetCode() {
+            if (confirm('Möchtest du wirklich einen neuen Code generieren? Dein alter Code funktioniert dann nicht mehr.')) {
+                localStorage.removeItem('userCode');
+                location.reload();
+            }
+        }
+
+        // Manuelles Login anzeigen
+        function showManualLogin() {
+            document.getElementById('manualLoginForm').classList.add('active');
+        }
+
+        // Manueller Login
+        function manualLogin(event) {
+            event.preventDefault();
+            
+            const code = document.getElementById('existingCode').value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+            
+            if (!code) {
+                errorMsg.textContent = 'Bitte gib einen Code ein.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            // Validierung: Code muss Tiername + Symbol sein
+            let isValid = false;
+            for (let animal of animalNames) {
+                for (let symbol of validSymbols) {
+                    if (code === animal + symbol) {
+                        isValid = true;
+                        break;
+                    }
+                }
+                if (isValid) break;
+            }
+
+            if (isValid) {
+                // Code speichern und einloggen
+                localStorage.setItem('userCode', code);
+                localStorage.setItem('loginTime', new Date().toISOString());
+                showReturningUser(code);
+                
+                setTimeout(() => {
+                    continueToLearning();
+                }, 1500);
+            } else {
+                errorMsg.textContent = 'Ungültiger Code. Der Code muss aus einem Tiernamen und einem Symbol bestehen.';
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        // Debug
+        console.log(`🎯 Mögliche Codes: ${animalNames.length * validSymbols.length}`);
+    </script>
+</body>
+</html>
