@@ -429,7 +429,7 @@
     <script>
         // Globale Variablen
         let userCode = null;
-        let database = null;
+        // database wird von firebase-config.js bereitgestellt
 
         // Initialisierung
         (function init() {
@@ -444,13 +444,16 @@
                     return;
                 }
 
-                // 2. Firebase Database Referenz holen
+                // 2. Prüfen ob Firebase geladen ist
                 if (typeof firebase === 'undefined') {
                     throw new Error('Firebase ist nicht geladen');
                 }
                 
-                database = firebase.database();
-                console.log('✅ Firebase Database initialisiert');
+                if (typeof database === 'undefined') {
+                    throw new Error('Database ist nicht initialisiert - prüfen Sie firebase-config.js');
+                }
+                
+                console.log('✅ Firebase Database verfügbar');
 
                 // 3. Dashboard laden
                 loadDashboard();
