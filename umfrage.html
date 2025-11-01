@@ -471,7 +471,7 @@
             submitButton.textContent = 'Wird gesendet...';
             
             // Hole User Code
-            const userCode = localStorage.getItem('currentUserCode');
+           const userCode = localStorage.getItem('userCode');
             if (!userCode) {
                 alert('Fehler: Kein Benutzer gefunden. Bitte melden Sie sich erneut an.');
                 window.location.href = 'login.html';
