@@ -61,135 +61,367 @@
             margin-bottom: 10px;
         }
 
-        .article-link a {
-            display: inline-block;
-            background: #5eb9b4;
-            color: white;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 10px;
-            transition: background 0.3s;
-        }
-
-        .article-link a:hover {
-            background: #4a9a95;
-        }
-
-        .key-points {
-            margin: 30px 0;
-        }
-
-        .key-points h2 {
-            color: #003876;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-        }
-
-        .highlight-box {
-            background: #e8f4f8;
-            border-left: 5px solid #003876;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-
-        .highlight-box h3 {
-            color: #003876;
-            margin-bottom: 10px;
-        }
-
-        .quote {
-            background: #f0f8f0;
-            border-left: 5px solid #5eb9b4;
-            padding: 20px;
-            margin: 20px 0;
-            font-style: italic;
-            border-radius: 5px;
-        }
-
-        .quote::before {
-            content: '"';
-            font-size: 3em;
-            color: #5eb9b4;
-            line-height: 0;
-            vertical-align: -0.4em;
-        }
-
-        .timeline {
-            margin: 30px 0;
-            padding: 20px;
+        /* Interaktive Sektionen */
+        .interactive-section {
+            margin: 40px 0;
+            padding: 30px;
             background: #f8f9fa;
             border-radius: 10px;
         }
 
-        .timeline h3 {
+        .interactive-section h2 {
             color: #003876;
             margin-bottom: 20px;
+            text-align: center;
         }
 
-        .timeline-item {
-            display: flex;
-            margin-bottom: 15px;
-            padding: 15px;
+        .activity-progress {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #003876;
+        }
+
+        /* === TIMELINE-AKTIVITÄT === */
+        .timeline-game {
+            margin-top: 25px;
+        }
+
+        .countries-pool {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 30px;
+            padding: 20px;
             background: white;
-            border-radius: 5px;
-            border-left: 4px solid #5eb9b4;
+            border-radius: 10px;
         }
 
-        .timeline-year {
+        .country-chip {
+            background: linear-gradient(135deg, #003876, #5eb9b4);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            text-align: center;
+            cursor: move;
+            font-weight: 600;
+            transition: all 0.3s;
+            user-select: none;
+        }
+
+        .country-chip:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .country-chip.dragging {
+            opacity: 0.5;
+        }
+
+        .country-chip.placed {
+            background: #4caf50;
+            cursor: default;
+        }
+
+        .timeline-drops {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .drop-zone {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: white;
+            border: 3px dashed #e0e0e0;
+            border-radius: 10px;
+            min-height: 80px;
+            transition: all 0.3s;
+        }
+
+        .drop-zone.drag-over {
+            border-color: #5eb9b4;
+            background: #e8f4f8;
+        }
+
+        .drop-zone.correct {
+            border-color: #4caf50;
+            background: #e8f5e9;
+            border-style: solid;
+        }
+
+        .drop-zone.incorrect {
+            border-color: #f44336;
+            background: #ffebee;
+            border-style: solid;
+        }
+
+        .drop-zone-year {
+            font-size: 1.5em;
             font-weight: bold;
             color: #003876;
             min-width: 80px;
         }
 
-        .timeline-text {
+        .drop-zone-content {
             flex: 1;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
-        .statistics {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
+        .timeline-feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
         }
 
-        .stat-card {
-            background: linear-gradient(135deg, #003876, #5eb9b4);
+        .timeline-feedback.show {
+            display: block;
+        }
+
+        .timeline-feedback.correct {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .timeline-feedback.incorrect {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+
+        .check-btn {
+            background: #5eb9b4;
             color: white;
-            padding: 25px;
-            border-radius: 10px;
-            text-align: center;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s;
         }
 
-        .stat-number {
-            font-size: 2.5em;
-            font-weight: bold;
+        .check-btn:hover {
+            background: #4a9a95;
+            transform: translateY(-2px);
+        }
+
+        .check-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* === LÄNDERVERGLEICH === */
+        .comparison-section {
+            display: none;
+        }
+
+        .comparison-section.unlocked {
+            display: block;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .country-card {
+            background: white;
+            border: 3px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .country-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .country-card.selected {
+            border-color: #5eb9b4;
+            background: #e8f4f8;
+        }
+
+        .country-flag {
+            font-size: 3em;
+            text-align: center;
             margin-bottom: 10px;
         }
 
-        .stat-label {
-            font-size: 1em;
-            opacity: 0.9;
+        .country-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #003876;
+            text-align: center;
+            margin-bottom: 15px;
         }
 
-        .comparison-box {
+        .country-facts {
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .country-facts div {
+            margin-bottom: 8px;
+        }
+
+        .comparison-question {
             background: #fff3cd;
             border-left: 5px solid #ffc107;
             padding: 20px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-
-        .comparison-box h3 {
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            font-weight: 600;
             color: #856404;
-            margin-bottom: 10px;
         }
 
+        .comparison-feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .comparison-feedback.show {
+            display: block;
+        }
+
+        .comparison-feedback.correct {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .comparison-feedback.incorrect {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+
+        /* === FAKTENCHECK === */
+        .facts-section {
+            display: none;
+        }
+
+        .facts-section.unlocked {
+            display: block;
+        }
+
+        .fact-card {
+            background: white;
+            border: 3px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .fact-statement {
+            font-size: 1.15em;
+            margin-bottom: 20px;
+            color: #003876;
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        .fact-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .fact-btn {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .fact-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .fact-btn.correct {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .fact-btn.incorrect {
+            background: #f44336;
+            color: white;
+            border-color: #f44336;
+        }
+
+        .fact-feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .fact-feedback.show {
+            display: block;
+        }
+
+        .fact-feedback.correct {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .fact-feedback.incorrect {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+
+        /* === QUIZ (GESPERRT) === */
         .quiz-section {
             margin-top: 50px;
             padding-top: 30px;
             border-top: 3px solid #5eb9b4;
+            position: relative;
+        }
+
+        .quiz-section.locked {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .quiz-lock-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 56, 118, 0.95);
+            color: white;
+            padding: 30px 40px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 10;
+            display: none;
+        }
+
+        .quiz-section.locked .quiz-lock-overlay {
+            display: block;
         }
 
         .quiz-section h2 {
@@ -338,6 +570,16 @@
             font-weight: bold;
         }
 
+        .unlock-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
         .navigation {
             display: flex;
             justify-content: space-between;
@@ -395,8 +637,12 @@
                 padding: 20px;
             }
 
-            .statistics {
+            .countries-pool, .comparison-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .fact-buttons {
+                flex-direction: column;
             }
 
             .navigation {
@@ -418,133 +664,227 @@
                 <h2>📄 Originalartikel</h2>
                 <p><strong>Autor:</strong> Simon Schmid</p>
                 <p><strong>Thema:</strong> Juso-Initiative im Ländervergleich – Historische Entwicklung der Erbschaftssteuern weltweit</p>
-                <a href="https://www.tagesanzeiger.ch/erbschaftssteuer-schweiz-juso-initiative-als-globaler-sonderfall-142294996360" target="_blank">Artikel im Original lesen →</a>
+                <a href="#" style="display: inline-block; background: #5eb9b4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin-top: 10px;">Artikel im Original lesen →</a>
             </div>
 
-            <div class="key-points">
-                <h2>🔑 Kernaussagen des Artikels</h2>
+            <!-- === SCHRITT 1: TIMELINE-SPIEL === -->
+            <div class="interactive-section">
+                <h2>📅 Schritt 1: Zeitstrahl der Abschaffungen</h2>
+                <p style="text-align: center; margin-bottom: 20px;">Ordnen Sie die Länder dem Jahr zu, in dem sie die Erbschaftssteuer abschafften. Ziehen Sie die Ländernamen auf die passenden Jahreszahlen.</p>
+                <div class="activity-progress" id="timeline-progress">0 von 6 Ländern zugeordnet</div>
+                
+                <div class="timeline-game">
+                    <div class="countries-pool" id="countries-pool">
+                        <div class="country-chip" draggable="true" data-country="kanada" data-year="1971">🇨🇦 Kanada</div>
+                        <div class="country-chip" draggable="true" data-country="australien" data-year="1979">🇦🇺 Australien</div>
+                        <div class="country-chip" draggable="true" data-country="neuseeland" data-year="2001">🇳🇿 Neuseeland</div>
+                        <div class="country-chip" draggable="true" data-country="schweden" data-year="2004">🇸🇪 Schweden</div>
+                        <div class="country-chip" draggable="true" data-country="oesterreich" data-year="2008">🇦🇹 Österreich</div>
+                        <div class="country-chip" draggable="true" data-country="norwegen" data-year="2013">🇳🇴 Norwegen</div>
+                    </div>
 
-                <div class="statistics">
-                    <div class="stat-card">
-                        <div class="stat-number">< 0,5%</div>
-                        <div class="stat-label">der OECD-Steuereinnahmen stammen heute aus Erbschaftssteuern</div>
+                    <div class="timeline-drops">
+                        <div class="drop-zone" data-year="1971">
+                            <div class="drop-zone-year">1971</div>
+                            <div class="drop-zone-content"></div>
+                        </div>
+                        <div class="drop-zone" data-year="1979">
+                            <div class="drop-zone-year">1979</div>
+                            <div class="drop-zone-content"></div>
+                        </div>
+                        <div class="drop-zone" data-year="2001">
+                            <div class="drop-zone-year">2001</div>
+                            <div class="drop-zone-content"></div>
+                        </div>
+                        <div class="drop-zone" data-year="2004">
+                            <div class="drop-zone-year">2004</div>
+                            <div class="drop-zone-content"></div>
+                        </div>
+                        <div class="drop-zone" data-year="2008">
+                            <div class="drop-zone-year">2008</div>
+                            <div class="drop-zone-content"></div>
+                        </div>
+                        <div class="drop-zone" data-year="2013">
+                            <div class="drop-zone-year">2013</div>
+                            <div class="drop-zone-content"></div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number">50%</div>
-                        <div class="stat-label">der Länder kennen heute eine Form der Erbschaftssteuer</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">40-80%</div>
-                        <div class="stat-label">Spitzensteuersätze in vielen Ländern während der Weltkriege</div>
-                    </div>
-                </div>
 
-                <div class="highlight-box">
-                    <h3>Die Schweiz als Sonderfall</h3>
-                    <p>Laut Laura Seelkopf (LMU München) steht die Schweiz mit ihren Erbschaftssteuern <strong>«quer in der Landschaft»</strong>:</p>
-                    <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
-                        <li><strong>Doppelbesteuerung:</strong> Vermögen wird sowohl mit der jährlichen Vermögenssteuer als auch mit der Erbschaftssteuer belastet – fast kein anderes Land hat beide Steuern</li>
-                        <li><strong>Föderalismus:</strong> Regelung auf Kantonsebene, manchmal sogar auf Gemeindeebene</li>
-                        <li><strong>Innerstaatlicher Steuerwettbewerb:</strong> Führt nachweislich zu gesunkenen Steuern</li>
-                        <li><strong>Null-Tarif für Kinder:</strong> In den meisten Kantonen zahlen direkte Nachkommen keine Erbschaftssteuer mehr</li>
-                    </ul>
-                </div>
-
-                <div class="timeline">
-                    <h3>📅 Geschichte der Erbschaftssteuern: Aufstieg und Fall</h3>
-                    <div class="timeline-item">
-                        <div class="timeline-year">1759</div>
-                        <div class="timeline-text">Österreich führt Erbschaftssteuer zur Kriegsfinanzierung ein (Siebenjähriger Krieg)</div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-year">1796</div>
-                        <div class="timeline-text">Grossbritannien führt Erbschaftssteuer im Krieg gegen Napoleon ein</div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-year">20. Jh.</div>
-                        <div class="timeline-text">Im Zuge der Weltkriege: Spitzensteuersätze steigen auf 40-80%</div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-year">1971</div>
-                        <div class="timeline-text">Kanada schafft Erbschaftssteuer ab</div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-year">1979</div>
-                        <div class="timeline-text">Australien schafft Erbschaftssteuer ab</div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-year">2001</div>
-                        <div class="timeline-text">Neuseeland schafft Erbschaftssteuer ab</div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-year">2004</div>
-                        <div class="timeline-text">Schweden schafft Erbschaftssteuer ab (sozialdemokratische Regierung!)</div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-year">2008</div>
-                        <div class="timeline-text">Österreich schafft Erbschaftssteuer ab</div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-year">2013</div>
-                        <div class="timeline-text">Norwegen schafft Erbschaftssteuer ab</div>
-                    </div>
-                </div>
-
-                <div class="quote">
-                    Die Vermögen seien zunehmend ungleich verteilt, und die Babyboomer würden grosse Erbschaften hinterlassen. Da liegt es nahe, dass Staaten einen Teil des zunehmenden Finanzbedarfs durch höhere Erbschaftssteuern decken.
-                    <br><br><strong>— Laura Seelkopf, Professorin an der LMU München</strong>
-                </div>
-
-                <div class="comparison-box">
-                    <h3>🌐 USA: Das Paradoxon der hohen Freibeträge</h3>
-                    <p><strong>Entwicklung der Freibeträge:</strong></p>
-                    <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
-                        <li>George W. Bush-Ära: 675'000 → 3,5 Millionen Dollar</li>
-                        <li>Trump 1. Amtszeit: 11 Millionen Dollar</li>
-                        <li>«One Big Beautiful Bill»: 15 Millionen Dollar (30 Mio. für Ehepaare)</li>
-                    </ul>
-                    <p style="margin-top: 15px;"><strong>Problem:</strong> Viele Schlupflöcher ermöglichen es Superreichen wie Warren Buffett (95), ihr Vermögen weitgehend unversteuert weiterzugeben (gemeinnützige Stiftungen, spezielle Trusts).</p>
-                </div>
-
-                <div class="highlight-box">
-                    <h3>Warum wurden Erbschaftssteuern abgeschafft?</h3>
-                    <p><strong>Gründe laut Forschung:</strong></p>
-                    <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
-                        <li><strong>Friedenszeiten:</strong> Dringlichkeit der Steuer nicht mehr gegeben (Laura Seelkopf)</li>
-                        <li><strong>Praktische Probleme:</strong> Schwierigkeiten für Erben von Familienbetrieben (Daniel Waldenström)</li>
-                        <li><strong>Unfaire Lastverteilung:</strong> Ausnahmen führten dazu, dass Mittelklasse die Hauptlast trug</li>
-                        <li><strong>Kapitalmobilität:</strong> Globalisierung schuf parteiübergreifenden Konsens, dass die Steuer kontraproduktiv sei (Hanna Lierse)</li>
-                        <li><strong>Abwanderungsängste:</strong> Reiche Unternehmer würden in steuergünstige Länder ziehen (z.B. Frederik Lundberg → Schweiz)</li>
-                    </ul>
-                </div>
-
-                <div class="comparison-box">
-                    <h3>🇨🇭 Die Juso-Initiative im internationalen Kontext</h3>
-                    <p><strong>Warum «Super-Sonderfall»?</strong></p>
-                    <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
-                        <li><strong>50% Steuersatz:</strong> Kaum ein Land besteuert selbst direkte Nachkommen so hoch</li>
-                        <li><strong>50 Millionen Franken Freibetrag:</strong> Nirgendwo sonst so hoch angesetzt</li>
-                        <li><strong>Einzigartig weltweit:</strong> Diese Kombination gibt es nirgends</li>
-                        <li><strong>Gegen den Trend:</strong> Radikaler Bruch mit jahrzehntelangem weltweitem Trend</li>
-                    </ul>
-                    <p style="margin-top: 15px;"><strong>Laura Seelkopf:</strong> «Sehr ungewöhnlich» – besser wäre eine moderate Steuer schon ab moderaten Summen.</p>
-                </div>
-
-                <div class="highlight-box">
-                    <h3>🔄 Mögliche Trendwende?</h3>
-                    <p>Debatten über höhere Erbschaftssteuern laufen in:</p>
-                    <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
-                        <li>Deutschland</li>
-                        <li>Österreich</li>
-                        <li>Frankreich</li>
-                        <li>Grossbritannien</li>
-                        <li>Australien</li>
-                    </ul>
-                    <p style="margin-top: 15px;"><em>«Ich würde nicht ausschliessen, dass manche Länder künftig wieder stärker auf Erbschaftssteuern setzen.»</em> – Laura Seelkopf</p>
+                    <button class="check-btn" id="check-timeline" onclick="checkTimeline()">Überprüfen</button>
+                    <div class="timeline-feedback" id="timeline-feedback"></div>
                 </div>
             </div>
 
-            <div class="quiz-section">
+            <!-- === SCHRITT 2: LÄNDERVERGLEICH === -->
+            <div class="interactive-section comparison-section" id="comparison-section">
+                <h2>🌐 Schritt 2: Länderspezifika verstehen</h2>
+                <p style="text-align: center; margin-bottom: 20px;">Wählen Sie das Land aus, auf das die folgende Aussage zutrifft.</p>
+                <div class="activity-progress" id="comparison-progress">0 von 3 Fragen beantwortet</div>
+
+                <!-- Frage 1 -->
+                <div class="comparison-question" data-question="1" data-correct="schweden">
+                    Welches Land schaffte die Erbschaftssteuer unter einer sozialdemokratischen Regierung ab, weil Ausnahmen dazu führten, dass die Mittelklasse die Hauptlast trug?
+                </div>
+                <div class="comparison-grid">
+                    <div class="country-card" data-answer="schweden">
+                        <div class="country-flag">🇸🇪</div>
+                        <div class="country-name">Schweden</div>
+                        <div class="country-facts">
+                            <div><strong>Abschaffung:</strong> 2004</div>
+                            <div><strong>Regierung:</strong> Sozialdemokratisch</div>
+                            <div><strong>Grund:</strong> Ungerechte Lastverteilung</div>
+                        </div>
+                    </div>
+                    <div class="country-card" data-answer="norwegen">
+                        <div class="country-flag">🇳🇴</div>
+                        <div class="country-name">Norwegen</div>
+                        <div class="country-facts">
+                            <div><strong>Abschaffung:</strong> 2013</div>
+                            <div><strong>Besonderheit:</strong> Trotz hohem Wohlfahrtsstaat</div>
+                            <div><strong>Grund:</strong> Kapitalmobilität</div>
+                        </div>
+                    </div>
+                    <div class="country-card" data-answer="oesterreich">
+                        <div class="country-flag">🇦🇹</div>
+                        <div class="country-name">Österreich</div>
+                        <div class="country-facts">
+                            <div><strong>Abschaffung:</strong> 2008</div>
+                            <div><strong>Besonderheit:</strong> Erste Einführung 1759</div>
+                            <div><strong>Grund:</strong> Praktische Probleme</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="comparison-feedback" id="comparison-feedback-1"></div>
+
+                <!-- Frage 2 -->
+                <div class="comparison-question" data-question="2" data-correct="oesterreich" style="margin-top: 40px;">
+                    Welches Land führte als eines der ersten 1759 eine Erbschaftssteuer zur Kriegsfinanzierung ein (Siebenjähriger Krieg)?
+                </div>
+                <div class="comparison-grid">
+                    <div class="country-card" data-answer="schweiz">
+                        <div class="country-flag">🇨🇭</div>
+                        <div class="country-name">Schweiz</div>
+                        <div class="country-facts">
+                            <div><strong>Besonderheit:</strong> Föderalismus</div>
+                            <div><strong>Heute:</strong> Doppelbesteuerung (Vermögen + Erbe)</div>
+                            <div><strong>Status:</strong> «Super-Sonderfall»</div>
+                        </div>
+                    </div>
+                    <div class="country-card" data-answer="oesterreich">
+                        <div class="country-flag">🇦🇹</div>
+                        <div class="country-name">Österreich</div>
+                        <div class="country-facts">
+                            <div><strong>Erste Einführung:</strong> 1759</div>
+                            <div><strong>Anlass:</strong> Siebenjähriger Krieg</div>
+                            <div><strong>Abschaffung:</strong> 2008</div>
+                        </div>
+                    </div>
+                    <div class="country-card" data-answer="grossbritannien">
+                        <div class="country-flag">🇬🇧</div>
+                        <div class="country-name">Grossbritannien</div>
+                        <div class="country-facts">
+                            <div><strong>Einführung:</strong> 1796</div>
+                            <div><strong>Anlass:</strong> Krieg gegen Napoleon</div>
+                            <div><strong>Status:</strong> Noch aktiv</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="comparison-feedback" id="comparison-feedback-2"></div>
+
+                <!-- Frage 3 -->
+                <div class="comparison-question" data-question="3" data-correct="schweiz" style="margin-top: 40px;">
+                    Welches Land hat heute noch sowohl eine Vermögenssteuer ALS AUCH eine Erbschaftssteuer - fast weltweit einzigartig?
+                </div>
+                <div class="comparison-grid">
+                    <div class="country-card" data-answer="usa">
+                        <div class="country-flag">🇺🇸</div>
+                        <div class="country-name">USA</div>
+                        <div class="country-facts">
+                            <div><strong>Freibetrag:</strong> 15 Mio. Dollar (geplant)</div>
+                            <div><strong>Problem:</strong> Viele Schlupflöcher</div>
+                            <div><strong>Status:</strong> Hohe Steuersätze, wenig Einnahmen</div>
+                        </div>
+                    </div>
+                    <div class="country-card" data-answer="deutschland">
+                        <div class="country-flag">🇩🇪</div>
+                        <div class="country-name">Deutschland</div>
+                        <div class="country-facts">
+                            <div><strong>Status:</strong> Hat Erbschaftssteuer</div>
+                            <div><strong>Debatte:</strong> Über höhere Steuern</div>
+                            <div><strong>Besonderheit:</strong> Keine Vermögenssteuer</div>
+                        </div>
+                    </div>
+                    <div class="country-card" data-answer="schweiz">
+                        <div class="country-flag">🇨🇭</div>
+                        <div class="country-name">Schweiz</div>
+                        <div class="country-facts">
+                            <div><strong>Besonderheit:</strong> Beide Steuern!</div>
+                            <div><strong>Problem:</strong> Doppelbesteuerung</div>
+                            <div><strong>Status:</strong> Fast weltweit einzigartig</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="comparison-feedback" id="comparison-feedback-3"></div>
+            </div>
+
+            <!-- === SCHRITT 3: FAKTENCHECK === -->
+            <div class="interactive-section facts-section" id="facts-section">
+                <h2>✅ Schritt 3: Historische Fakten überprüfen</h2>
+                <p style="text-align: center; margin-bottom: 20px;">Richtig oder falsch? Entscheiden Sie bei den folgenden Aussagen.</p>
+                <div class="activity-progress" id="facts-progress">0 von 4 Aussagen beantwortet</div>
+
+                <div class="fact-card" data-fact="1" data-correct="true">
+                    <div class="fact-statement">
+                        Historisch wurden Erbschaftssteuern häufig zur Kriegsfinanzierung eingeführt, etwa in Österreich 1759 oder Grossbritannien 1796.
+                    </div>
+                    <div class="fact-buttons">
+                        <button class="fact-btn" data-answer="true">✓ Richtig</button>
+                        <button class="fact-btn" data-answer="false">✗ Falsch</button>
+                    </div>
+                    <div class="fact-feedback"></div>
+                </div>
+
+                <div class="fact-card" data-fact="2" data-correct="false">
+                    <div class="fact-statement">
+                        Die Schweiz ist das einzige Land weltweit, das heute noch eine Erbschaftssteuer kennt.
+                    </div>
+                    <div class="fact-buttons">
+                        <button class="fact-btn" data-answer="true">✓ Richtig</button>
+                        <button class="fact-btn" data-answer="false">✗ Falsch</button>
+                    </div>
+                    <div class="fact-feedback"></div>
+                </div>
+
+                <div class="fact-card" data-fact="3" data-correct="true">
+                    <div class="fact-statement">
+                        Weniger als 0,5% der gesamten Steuereinnahmen in OECD-Ländern stammen heute aus Erbschaftssteuern.
+                    </div>
+                    <div class="fact-buttons">
+                        <button class="fact-btn" data-answer="true">✓ Richtig</button>
+                        <button class="fact-btn" data-answer="false">✗ Falsch</button>
+                    </div>
+                    <div class="fact-feedback"></div>
+                </div>
+
+                <div class="fact-card" data-fact="4" data-correct="true">
+                    <div class="fact-statement">
+                        Die Kombination von 50% Steuersatz und 50 Millionen Franken Freibetrag in der Juso-Initiative ist weltweit einzigartig.
+                    </div>
+                    <div class="fact-buttons">
+                        <button class="fact-btn" data-answer="true">✓ Richtig</button>
+                        <button class="fact-btn" data-answer="false">✗ Falsch</button>
+                    </div>
+                    <div class="fact-feedback"></div>
+                </div>
+            </div>
+
+            <!-- === QUIZ (GESPERRT) === -->
+            <div class="quiz-section locked" id="quiz-section">
+                <div class="quiz-lock-overlay">
+                    <h3>🔒 Quiz gesperrt</h3>
+                    <p>Bitte schließen Sie erst alle drei interaktiven Aktivitäten ab, um das Quiz freizuschalten.</p>
+                </div>
+
                 <h2>📝 Kontrollfragen zum Artikel</h2>
                 <div class="progress-text">Fortschritt: <span id="quiz-progress">0/6</span> Fragen beantwortet</div>
                 <div class="progress-bar">
@@ -645,14 +985,284 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="firebase-config.js"></script>
+    <script src="../firebase-config.js"></script>
 
     <script>
+        // === AKTIVITÄTSSTATUS ===
+        let activitiesCompleted = {
+            timeline: false,
+            comparison: false,
+            facts: false
+        };
+
+        // === TIMELINE DRAG & DROP ===
+        let draggedElement = null;
+        const placedCountries = {};
+
+        document.querySelectorAll('.country-chip').forEach(chip => {
+            chip.addEventListener('dragstart', function(e) {
+                draggedElement = this;
+                this.classList.add('dragging');
+            });
+
+            chip.addEventListener('dragend', function() {
+                this.classList.remove('dragging');
+            });
+        });
+
+        document.querySelectorAll('.drop-zone').forEach(zone => {
+            zone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('drag-over');
+            });
+
+            zone.addEventListener('dragleave', function() {
+                this.classList.remove('drag-over');
+            });
+
+            zone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('drag-over');
+                
+                if (draggedElement) {
+                    const content = this.querySelector('.drop-zone-content');
+                    const clone = draggedElement.cloneNode(true);
+                    clone.draggable = false;
+                    clone.style.cursor = 'default';
+                    content.appendChild(clone);
+                    
+                    draggedElement.classList.add('placed');
+                    draggedElement.draggable = false;
+                    
+                    const country = draggedElement.dataset.country;
+                    const year = this.dataset.year;
+                    placedCountries[country] = year;
+                    
+                    updateTimelineProgress();
+                    
+                    if (Object.keys(placedCountries).length === 6) {
+                        document.getElementById('check-timeline').disabled = false;
+                    }
+                }
+            });
+        });
+
+        function updateTimelineProgress() {
+            const count = Object.keys(placedCountries).length;
+            document.getElementById('timeline-progress').textContent = `${count} von 6 Ländern zugeordnet`;
+        }
+
+        function checkTimeline() {
+            let allCorrect = true;
+            const dropZones = document.querySelectorAll('.drop-zone');
+            
+            dropZones.forEach(zone => {
+                const year = zone.dataset.year;
+                const content = zone.querySelector('.drop-zone-content');
+                const chip = content.querySelector('.country-chip');
+                
+                if (chip) {
+                    const correctYear = chip.dataset.year;
+                    if (correctYear === year) {
+                        zone.classList.add('correct');
+                    } else {
+                        zone.classList.add('incorrect');
+                        allCorrect = false;
+                    }
+                }
+            });
+
+            const feedback = document.getElementById('timeline-feedback');
+            if (allCorrect) {
+                feedback.className = 'timeline-feedback correct show';
+                feedback.textContent = '✓ Perfekt! Alle Länder wurden korrekt zugeordnet. Diese Länder haben über einen Zeitraum von 42 Jahren die Erbschaftssteuer abgeschafft.';
+                activitiesCompleted.timeline = true;
+                setTimeout(() => {
+                    unlockComparison();
+                }, 1500);
+            } else {
+                feedback.className = 'timeline-feedback incorrect show';
+                feedback.textContent = '✗ Nicht ganz. Einige Zuordnungen sind noch nicht korrekt. Versuchen Sie es erneut!';
+                
+                setTimeout(() => {
+                    resetTimeline();
+                }, 3000);
+            }
+        }
+
+        function resetTimeline() {
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.classList.remove('correct', 'incorrect');
+                zone.querySelector('.drop-zone-content').innerHTML = '';
+            });
+            
+            document.querySelectorAll('.country-chip').forEach(chip => {
+                chip.classList.remove('placed');
+                chip.draggable = true;
+                chip.style.cursor = 'move';
+            });
+            
+            Object.keys(placedCountries).forEach(key => delete placedCountries[key]);
+            updateTimelineProgress();
+            document.getElementById('check-timeline').disabled = true;
+            document.getElementById('timeline-feedback').classList.remove('show');
+        }
+
+        function unlockComparison() {
+            document.getElementById('comparison-section').classList.add('unlocked');
+            document.getElementById('comparison-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // === LÄNDERVERGLEICH ===
+        let answeredComparisons = new Set();
+        const totalComparisons = 3;
+
+        document.querySelectorAll('.country-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const question = this.closest('.comparison-question, [data-question]');
+                if (!question) return;
+                
+                const questionNum = question.dataset.question;
+                if (answeredComparisons.has(questionNum)) return;
+                
+                const correctAnswer = question.dataset.correct;
+                const userAnswer = this.dataset.answer;
+                const feedback = document.getElementById(`comparison-feedback-${questionNum}`);
+                
+                const allCards = question.nextElementSibling.querySelectorAll('.country-card');
+                allCards.forEach(c => c.style.pointerEvents = 'none');
+                
+                this.classList.add('selected');
+                
+                setTimeout(() => {
+                    if (userAnswer === correctAnswer) {
+                        feedback.className = 'comparison-feedback correct show';
+                        feedback.textContent = '✓ Richtig! ' + getComparisonFeedback(questionNum);
+                    } else {
+                        feedback.className = 'comparison-feedback incorrect show';
+                        feedback.textContent = '✗ Nicht ganz. ' + getComparisonFeedback(questionNum);
+                        allCards.forEach(c => {
+                            if (c.dataset.answer === correctAnswer) {
+                                c.classList.add('selected');
+                            }
+                        });
+                    }
+                    
+                    answeredComparisons.add(questionNum);
+                    updateComparisonProgress();
+                    
+                    if (answeredComparisons.size === totalComparisons && !activitiesCompleted.comparison) {
+                        activitiesCompleted.comparison = true;
+                        setTimeout(() => {
+                            unlockFacts();
+                        }, 1500);
+                    }
+                }, 500);
+            });
+        });
+
+        function updateComparisonProgress() {
+            document.getElementById('comparison-progress').textContent = `${answeredComparisons.size} von ${totalComparisons} Fragen beantwortet`;
+        }
+
+        function getComparisonFeedback(questionNum) {
+            const feedbacks = {
+                '1': 'Schweden schaffte 2004 unter sozialdemokratischer Regierung die Erbschaftssteuer ab, weil Ausnahmen dazu führten, dass die Mittelklasse die Hauptlast trug.',
+                '2': 'Österreich führte 1759 zur Finanzierung des Siebenjährigen Krieges eine der ersten Erbschaftssteuern ein.',
+                '3': 'Die Schweiz ist mit ihrer Doppelbesteuerung (Vermögen UND Erbe) fast weltweit einzigartig – die meisten Länder haben nur eine der beiden Steuern.'
+            };
+            return feedbacks[questionNum] || '';
+        }
+
+        function unlockFacts() {
+            document.getElementById('facts-section').classList.add('unlocked');
+            document.getElementById('facts-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            const badge = document.createElement('div');
+            badge.className = 'unlock-badge';
+            badge.textContent = '🔓 Faktencheck freigeschaltet!';
+            badge.style.marginTop = '20px';
+            document.getElementById('comparison-section').appendChild(badge);
+        }
+
+        // === FAKTENCHECK ===
+        let answeredFacts = new Set();
+        const totalFacts = 4;
+
+        document.querySelectorAll('.fact-card').forEach(card => {
+            const buttons = card.querySelectorAll('.fact-btn');
+            const factNum = card.dataset.fact;
+            const isCorrect = card.dataset.correct === 'true';
+
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    if (answeredFacts.has(factNum)) return;
+
+                    const userAnswer = this.dataset.answer === 'true';
+                    const feedback = card.querySelector('.fact-feedback');
+                    const answerCorrect = userAnswer === isCorrect;
+
+                    buttons.forEach(btn => btn.disabled = true);
+                    
+                    if (answerCorrect) {
+                        this.classList.add('correct');
+                        feedback.className = 'fact-feedback correct show';
+                        feedback.textContent = '✓ Richtig! ' + getFactFeedback(factNum);
+                    } else {
+                        this.classList.add('incorrect');
+                        buttons.forEach(btn => {
+                            if ((btn.dataset.answer === 'true') === isCorrect) {
+                                btn.classList.add('correct');
+                            }
+                        });
+                        feedback.className = 'fact-feedback incorrect show';
+                        feedback.textContent = '✗ Falsch. ' + getFactFeedback(factNum);
+                    }
+
+                    answeredFacts.add(factNum);
+                    updateFactsProgress();
+
+                    if (answeredFacts.size === totalFacts && !activitiesCompleted.facts) {
+                        activitiesCompleted.facts = true;
+                        setTimeout(() => {
+                            unlockQuiz();
+                        }, 1500);
+                    }
+                });
+            });
+        });
+
+        function updateFactsProgress() {
+            document.getElementById('facts-progress').textContent = `${answeredFacts.size} von ${totalFacts} Aussagen beantwortet`;
+        }
+
+        function getFactFeedback(factNum) {
+            const feedbacks = {
+                '1': 'Österreich 1759 (Siebenjähriger Krieg) und Grossbritannien 1796 (Krieg gegen Napoleon) sind historische Beispiele.',
+                '2': 'Falsch! Etwa 50% der Länder weltweit kennen heute noch eine Form der Erbschaftssteuer.',
+                '3': 'Richtig! Dieser drastische Rückgang zeigt die geringe Bedeutung von Erbschaftssteuern in den meisten OECD-Ländern heute.',
+                '4': 'Richtig! Laura Seelkopf bezeichnet diese Kombination als «sehr ungewöhnlich» und weltweit einzigartig.'
+            };
+            return feedbacks[factNum] || '';
+        }
+
+        function unlockQuiz() {
+            const quizSection = document.getElementById('quiz-section');
+            quizSection.classList.remove('locked');
+            quizSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            const badge = document.createElement('div');
+            badge.className = 'unlock-badge';
+            badge.textContent = '🔓 Quiz freigeschaltet!';
+            badge.style.marginTop = '20px';
+            document.getElementById('facts-section').appendChild(badge);
+        }
+
+        // === QUIZ ===
         let currentQuestion = 1;
         let answeredQuestions = new Set();
         const totalQuestions = 6;
 
-        // Event Listeners für alle Optionen
         document.querySelectorAll('.option').forEach(option => {
             option.addEventListener('click', function() {
                 const question = this.closest('.question');
@@ -661,14 +1271,11 @@
                 const feedback = question.querySelector('.feedback');
                 const nextButton = question.querySelector('.next-button');
                 
-                // Wenn schon beantwortet, nicht mehr ändern
                 if (answeredQuestions.has(questionNum)) return;
                 
-                // Auswahl markieren
                 options.forEach(opt => opt.classList.remove('selected'));
                 this.classList.add('selected');
                 
-                // Antwort prüfen
                 const isCorrect = this.dataset.answer === 'correct';
                 
                 setTimeout(() => {
@@ -678,7 +1285,6 @@
                         feedback.textContent = '✓ Richtig! ' + getCorrectFeedback(questionNum);
                     } else {
                         this.classList.add('incorrect');
-                        // Richtige Antwort auch anzeigen
                         options.forEach(opt => {
                             if (opt.dataset.answer === 'correct') {
                                 opt.classList.add('correct');
@@ -692,9 +1298,6 @@
                     answeredQuestions.add(questionNum);
                     nextButton.classList.add('show');
                     updateProgress();
-                    
-                    // Firebase tracking
-                    trackQuizAnswer('artikel3', questionNum, isCorrect);
                 }, 300);
             });
         });
@@ -710,7 +1313,6 @@
                 nextQ.classList.add('active');
             } else {
                 document.getElementById('completion-message').classList.add('show');
-                markArticleComplete('artikel3');
             }
         }
 
@@ -726,43 +1328,16 @@
                 '2': 'Praktisch kein anderes Land hat beide Steuern – die meisten kennen entweder die eine oder die andere Variante.',
                 '3': 'In Schweden schaffte ausgerechnet eine sozialdemokratische Regierung die Erbschaftssteuer ab – nachdem Ausnahmen dazu führten, dass die Mittelklasse die Hauptlast trug.',
                 '4': 'Dieser drastische Rückgang zeigt die geringe Bedeutung von Erbschaftssteuern in den meisten OECD-Ländern heute.',
-                '5': 'Seelkopf findet ein anderes Design geeigneter: eine moderate Steuer schon ab moderaten Summen statt einer extrem hohen Steuer auf extrem hohe Erbschaften.',
+                '5': 'Seelkopf findet ein anderes Design geeigneter: eine moderate Steuer schon ab moderaten Summen.',
                 '6': 'Die genannten Gründe sind: fehlende Dringlichkeit in Friedenszeiten, praktische Probleme, unfaire Lastverteilung und zunehmende Kapitalmobilität.'
             };
             return feedbacks[questionNum] || '';
         }
 
-        // Fortschritt beim Laden wiederherstellen
+        // Beim Laden
         window.addEventListener('load', () => {
-            const savedProgress = localStorage.getItem('artikel3_progress');
-            if (savedProgress) {
-                const progress = JSON.parse(savedProgress);
-                answeredQuestions = new Set(progress.answered);
-                currentQuestion = progress.current;
-                
-                // Zeige die aktuelle Frage
-                document.querySelectorAll('.question').forEach(q => q.classList.remove('active'));
-                if (currentQuestion <= totalQuestions) {
-                    document.querySelector(`[data-question="${currentQuestion}"]`).classList.add('active');
-                }
-                
-                updateProgress();
-                
-                if (answeredQuestions.size === totalQuestions) {
-                    document.getElementById('completion-message').classList.add('show');
-                }
-            }
-            
-            // Seitenbesuch tracken
-            trackPageVisit('artikel3');
-        });
-
-        // Fortschritt speichern
-        window.addEventListener('beforeunload', () => {
-            localStorage.setItem('artikel3_progress', JSON.stringify({
-                answered: [...answeredQuestions],
-                current: currentQuestion
-            }));
+            document.getElementById('check-timeline').disabled = true;
+            console.log('Page visited: artikel3');
         });
     </script>
 </body>
