@@ -426,7 +426,7 @@
     <script src="firebase-config.js"></script>
     <script>
         // Prüfen ob User eingeloggt ist
-        const userCode = localStorage.getItem('currentUserCode');
+        const userCode = localStorage.getItem('userCode');
         if (!userCode) {
             window.location.href = 'login.html';
         }
