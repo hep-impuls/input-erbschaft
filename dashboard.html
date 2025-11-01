@@ -423,15 +423,49 @@
         </div>
     </div>
 
+    <!-- Firebase Config muss VOR dem Dashboard-Script geladen werden -->
     <script src="firebase-config.js"></script>
+    
     <script>
-        // Prüfen ob User eingeloggt ist
-        const userCode = localStorage.getItem('userCode');
-        if (!userCode) {
-            window.location.href = 'login.html';
-        }
+        // Globale Variablen
+        let userCode = null;
+        let database = null;
 
-        // Seiten-Namen (angepasst an neue Struktur)
+        // Initialisierung
+        (function init() {
+            try {
+                // 1. UserCode holen
+                userCode = localStorage.getItem('userCode');
+                console.log('🔍 UserCode:', userCode);
+                
+                if (!userCode) {
+                    console.log('❌ Kein UserCode gefunden, leite zu Login um...');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // 2. Firebase Database Referenz holen
+                if (typeof firebase === 'undefined') {
+                    throw new Error('Firebase ist nicht geladen');
+                }
+                
+                database = firebase.database();
+                console.log('✅ Firebase Database initialisiert');
+
+                // 3. Dashboard laden
+                loadDashboard();
+                
+            } catch (error) {
+                console.error('❌ Fehler bei Initialisierung:', error);
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('errorState').textContent = 
+                    'Fehler beim Laden der Seite: ' + error.message + 
+                    '. Bitte prüfen Sie, ob firebase-config.js korrekt eingebunden ist.';
+                document.getElementById('errorState').style.display = 'block';
+            }
+        })();
+
+        // Seiten-Namen
         const pages = {
             'radio': '🎙️ Radiobeitrag',
             'artikel1': '📄 Artikel 1: Ökonomen',
@@ -444,6 +478,7 @@
         // Dashboard laden
         async function loadDashboard() {
             try {
+                console.log('📊 Lade Dashboard...');
                 document.getElementById('loadingState').style.display = 'block';
                 document.getElementById('errorState').style.display = 'none';
                 document.getElementById('dashboardContent').style.display = 'none';
@@ -459,8 +494,10 @@
                 }
 
                 // Alle User-Daten abrufen
+                console.log('📡 Rufe User-Daten von Firebase ab...');
                 const usersSnapshot = await database.ref('users').once('value');
                 const allUsersData = usersSnapshot.val() || {};
+                console.log('✅ User-Daten geladen:', Object.keys(allUsersData).length, 'Benutzer');
                 
                 // Personal Stats berechnen
                 const myData = allUsersData[userCode] || {};
@@ -478,11 +515,14 @@
                 // Dashboard anzeigen
                 document.getElementById('loadingState').style.display = 'none';
                 document.getElementById('dashboardContent').style.display = 'block';
+                console.log('✅ Dashboard erfolgreich geladen');
                 
             } catch (error) {
-                console.error('Fehler beim Laden des Dashboards:', error);
+                console.error('❌ Fehler beim Laden des Dashboards:', error);
                 document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('errorState').textContent = 'Fehler beim Laden der Daten. Bitte Seite neu laden.';
+                document.getElementById('errorState').textContent = 
+                    'Fehler beim Laden der Daten: ' + error.message + 
+                    '. Bitte Seite neu laden oder prüfen Sie Ihre Firebase-Konfiguration.';
                 document.getElementById('errorState').style.display = 'block';
             }
         }
@@ -714,11 +754,12 @@
             }
         }
 
-        // Dashboard laden beim Seitenaufruf
-        loadDashboard();
-        
-        // Auto-Refresh alle 30 Sekunden
-        setInterval(loadDashboard, 30000);
+        // Auto-Refresh alle 30 Sekunden (optional - nur wenn Dashboard schon geladen wurde)
+        setInterval(() => {
+            if (document.getElementById('dashboardContent').style.display !== 'none') {
+                loadDashboard();
+            }
+        }, 30000);
     </script>
 </body>
 </html>
