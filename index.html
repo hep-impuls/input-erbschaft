@@ -211,6 +211,19 @@
             line-height: 1.5;
         }
 
+        .module-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--hep-turquoise);
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .module-link:hover {
+            color: var(--hep-blue);
+        }
+
         .dashboard-highlight {
             background: linear-gradient(135deg, #003876 0%, #5eb9b4 100%);
             color: white;
@@ -313,6 +326,7 @@
         <div class="logo-placeholder">hep</div>
         <div class="header-nav">
             <a href="login.html" class="header-link">Login</a>
+            <a href="lernseiten/umfrage.html" class="header-link">📊 Umfrage</a>
             <a href="dashboard.html" class="header-link dashboard">📊 Dashboard</a>
         </div>
     </header>
@@ -376,6 +390,7 @@
                     <div class="module-item">
                         <h4>📊 Umfrage: Ihr Feedback</h4>
                         <p>Bewerten Sie das Lernset: Qualität, Übersichtlichkeit, Informationsgehalt, Niveau und Interaktivität mit Emoji-Ratings.</p>
+                        <a href="lernseiten/umfrage.html" class="module-link">→ Zur Umfrage</a>
                     </div>
                 </div>
             </div>
