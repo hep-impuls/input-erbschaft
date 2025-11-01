@@ -61,104 +61,335 @@
             margin-bottom: 10px;
         }
 
-        .article-link a {
-            display: inline-block;
-            background: #5eb9b4;
-            color: white;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 10px;
-            transition: background 0.3s;
+        /* Interaktive Sektionen */
+        .interactive-section {
+            margin: 40px 0;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
         }
 
-        .article-link a:hover {
-            background: #4a9a95;
-        }
-
-        .key-points {
-            margin: 30px 0;
-        }
-
-        .key-points h2 {
+        .interactive-section h2 {
             color: #003876;
             margin-bottom: 20px;
-            font-size: 1.8em;
+            text-align: center;
         }
 
-        .highlight-box {
-            background: #e8f4f8;
-            border-left: 5px solid #003876;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-
-        .highlight-box h3 {
+        .activity-progress {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
             color: #003876;
-            margin-bottom: 10px;
         }
 
-        .quote {
-            background: #f0f8f0;
-            border-left: 5px solid #5eb9b4;
-            padding: 20px;
-            margin: 20px 0;
-            font-style: italic;
-            border-radius: 5px;
+        /* === KARTEN-SEKTION === */
+        .card-carousel {
+            position: relative;
+            min-height: 350px;
         }
 
-        .quote::before {
-            content: '"';
-            font-size: 3em;
-            color: #5eb9b4;
-            line-height: 0;
-            vertical-align: -0.4em;
+        .info-card {
+            background: white;
+            border: 3px solid #5eb9b4;
+            border-radius: 10px;
+            padding: 30px;
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .info-card.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .info-card h3 {
+            color: #003876;
+            margin-bottom: 15px;
+            font-size: 1.5em;
         }
 
         .statistics {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
         }
 
         .stat-card {
             background: linear-gradient(135deg, #003876, #5eb9b4);
             color: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: 10px;
             text-align: center;
         }
 
         .stat-number {
-            font-size: 2.5em;
+            font-size: 2em;
             font-weight: bold;
             margin-bottom: 10px;
         }
 
         .stat-label {
-            font-size: 1em;
+            font-size: 0.9em;
             opacity: 0.9;
         }
 
-        .warning-box {
-            background: #fff3cd;
-            border-left: 5px solid #ffc107;
-            padding: 20px;
-            margin: 20px 0;
+        .card-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .card-nav-btn {
+            background: #5eb9b4;
+            color: white;
+            border: none;
+            padding: 12px 25px;
             border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
         }
 
-        .warning-box h3 {
-            color: #856404;
-            margin-bottom: 10px;
+        .card-nav-btn:hover {
+            background: #4a9a95;
+            transform: translateY(-2px);
         }
 
+        .card-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .card-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ddd;
+            transition: background 0.3s;
+        }
+
+        .dot.active {
+            background: #5eb9b4;
+        }
+
+        .dot.completed {
+            background: #4caf50;
+        }
+
+        /* === GLOSSAR-MEMORY === */
+        .glossary-section {
+            display: none;
+        }
+
+        .glossary-section.unlocked {
+            display: block;
+        }
+
+        .glossary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .glossary-card {
+            background: white;
+            border: 3px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .glossary-card:hover:not(.matched):not(.selected) {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .glossary-card.term {
+            background: linear-gradient(135deg, #003876, #5eb9b4);
+            color: white;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .glossary-card.definition {
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+
+        .glossary-card.selected {
+            border-color: #ffc107;
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
+        }
+
+        .glossary-card.matched {
+            border-color: #4caf50;
+            background: #e8f5e9;
+            cursor: default;
+            opacity: 0.7;
+        }
+
+        .glossary-feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+
+        .glossary-feedback.show {
+            display: block;
+        }
+
+        .glossary-feedback.correct {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .glossary-feedback.incorrect {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+
+        /* === ZITATE-AKTIVITÄT === */
+        .quotes-section {
+            display: none;
+        }
+
+        .quotes-section.unlocked {
+            display: block;
+        }
+
+        .quote-pair {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .quote-text {
+            background: #f0f8f0;
+            border-left: 5px solid #5eb9b4;
+            padding: 20px;
+            font-style: italic;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        .context-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        .context-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .context-btn:hover {
+            border-color: #5eb9b4;
+            transform: translateX(5px);
+        }
+
+        .context-btn.correct {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .context-btn.incorrect {
+            background: #f44336;
+            color: white;
+            border-color: #f44336;
+        }
+
+        .quote-feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .quote-feedback.show {
+            display: block;
+        }
+
+        .quote-feedback.correct {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .quote-feedback.incorrect {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+
+        /* === QUIZ (GESPERRT) === */
         .quiz-section {
             margin-top: 50px;
             padding-top: 30px;
             border-top: 3px solid #5eb9b4;
+            position: relative;
+        }
+
+        .quiz-section.locked {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .quiz-lock-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 56, 118, 0.95);
+            color: white;
+            padding: 30px 40px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 10;
+            display: none;
+        }
+
+        .quiz-section.locked .quiz-lock-overlay {
+            display: block;
         }
 
         .quiz-section h2 {
@@ -174,14 +405,14 @@
             border-radius: 10px;
             border: 2px solid #e0e0e0;
             display: none;
-            animation: slideIn 0.5s ease-out;
+            animation: slideInQuiz 0.5s ease-out;
         }
 
         .question.active {
             display: block;
         }
 
-        @keyframes slideIn {
+        @keyframes slideInQuiz {
             from {
                 opacity: 0;
                 transform: translateY(20px);
@@ -307,6 +538,16 @@
             font-weight: bold;
         }
 
+        .unlock-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
         .navigation {
             display: flex;
             justify-content: space-between;
@@ -364,7 +605,7 @@
                 padding: 20px;
             }
 
-            .statistics {
+            .statistics, .glossary-grid, .context-options {
                 grid-template-columns: 1fr;
             }
 
@@ -387,99 +628,179 @@
                 <h2>📄 Original-Interview</h2>
                 <p><strong>Interviewpartner:</strong> Marius Brülhart, Professor für Volkswirtschaftslehre, Universität Lausanne</p>
                 <p><strong>Interviewer:</strong> Christina Neuhaus, Fabian Schäfer</p>
-                <p><strong>Datum:</strong> 16.04.2025</p>
-                <a href="#" target="_blank">Interview im Original lesen →</a>
+                <a href="#" style="display: inline-block; background: #5eb9b4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin-top: 10px;">Interview im Original lesen →</a>
             </div>
 
-            <div class="key-points">
-                <h2>🔑 Kernaussagen des Interviews</h2>
-
-                <div class="statistics">
-                    <div class="stat-card">
-                        <div class="stat-number">45%</div>
-                        <div class="stat-label">des steuerbaren Vermögens hält das reichste Prozent der Bevölkerung</div>
+            <!-- === SCHRITT 1: KARTEN === -->
+            <div class="interactive-section">
+                <h2>📖 Schritt 1: Kernaussagen entdecken</h2>
+                <p style="text-align: center; margin-bottom: 20px;">Klicken Sie sich durch alle 4 Karten, um die wichtigsten Punkte des Interviews kennenzulernen.</p>
+                <div class="activity-progress" id="card-progress">Karte <span id="current-card">1</span> von 4</div>
+                
+                <div class="card-carousel">
+                    <!-- Karte 1 -->
+                    <div class="info-card active" data-card="1">
+                        <h3>📊 Vermögenskonzentration in der Schweiz</h3>
+                        <div class="statistics">
+                            <div class="stat-card">
+                                <div class="stat-number">45%</div>
+                                <div class="stat-label">des steuerbaren Vermögens hält das reichste 1%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">60</div>
+                                <div class="stat-label">Jahre ist das mittlere Alter der Schweizer Erben</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">1,6</div>
+                                <div class="stat-label">Rappen pro Franken – von 4,3 Rappen gesunken</div>
+                            </div>
+                        </div>
+                        <p style="margin-top: 15px;"><em>💡 In den letzten 20 Jahren ist die Konzentration fast jedes Jahr gestiegen.</em></p>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number">60</div>
-                        <div class="stat-label">Jahre ist das mittlere Alter der Schweizer Erben</div>
+
+                    <!-- Karte 2 -->
+                    <div class="info-card" data-card="2">
+                        <h3>💰 Was passiert mit Erbschaften?</h3>
+                        <div style="background: #e8f4f8; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                            <h4 style="color: #003876; margin-bottom: 10px;">Kleinere Erbschaften</h4>
+                            <p style="margin-bottom: 10px;">Verflüchtigen sich oft innerhalb von 10 Jahren:</p>
+                            <ul style="margin-left: 20px; line-height: 1.8;">
+                                <li>🚗 Kauf eines neuen Autos</li>
+                                <li>⏰ Reduktion des Arbeitspensums</li>
+                                <li>🛍️ Andere Konsumausgaben</li>
+                            </ul>
+                        </div>
+                        <div style="background: #fff3cd; padding: 20px; border-radius: 8px;">
+                            <h4 style="color: #856404; margin-bottom: 10px;">Grosse Erbschaften</h4>
+                            <p style="margin-bottom: 10px;">Werden nicht konsumiert, sondern weiter geäufnet:</p>
+                            <ul style="margin-left: 20px; line-height: 1.8;">
+                                <li>🏢 Insbesondere Unternehmensanteile</li>
+                                <li>📈 Führen zu weiterer Vermögenskonzentration</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number">1,6</div>
-                        <div class="stat-label">Rappen pro Franken – von 4,3 Rappen in den 1990er Jahren gesunken</div>
+
+                    <!-- Karte 3 -->
+                    <div class="info-card" data-card="3">
+                        <h3>⚠️ Kritik an der Juso-Initiative (50% Steuer)</h3>
+                        <p style="margin-bottom: 15px;">Brülhart warnt vor massiven Folgen:</p>
+                        <div style="background: #ffebee; padding: 20px; border-radius: 8px; border-left: 5px solid #f44336;">
+                            <ul style="line-height: 2;">
+                                <li><strong>49-74%</strong> der Betroffenen würden voraussichtlich wegziehen</li>
+                                <li><strong>Bis zu 93%</strong> der betroffenen Vermögen würden abwandern</li>
+                                <li><strong>Staatseinnahmen:</strong> zwischen -0,7 und +0,3 Milliarden Franken</li>
+                                <li>⚠️ Könnte sogar <strong>kontraproduktiv</strong> sein</li>
+                            </ul>
+                        </div>
+                        <p style="margin-top: 15px; font-style: italic;">💡 Die hohe Mobilität des Kapitals macht hohe Steuersätze problematisch.</p>
+                    </div>
+
+                    <!-- Karte 4 -->
+                    <div class="info-card" data-card="4">
+                        <h3>✅ Alternative: Moderate Erbschaftssteuer</h3>
+                        <p style="margin-bottom: 15px;">Brülharts Vorschlag:</p>
+                        <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; border-left: 5px solid #4caf50;">
+                            <h4 style="color: #2e7d32; margin-bottom: 10px;">10% auf Nachlassvermögen über 5 Millionen Franken</h4>
+                            <ul style="line-height: 1.8; margin-top: 15px;">
+                                <li>✓ Würde die Einnahmenausfälle seit den 1990er Jahren kompensieren</li>
+                                <li>✓ Könnte helfen, die AHV zu finanzieren</li>
+                                <li>✓ Effizienter als weitere Mehrwertsteuer-Erhöhungen</li>
+                                <li>✓ Bestraft nicht diejenigen, die viel leisten</li>
+                            </ul>
+                        </div>
+                        <p style="margin-top: 15px; font-style: italic; color: #5eb9b4;">💬 "Eine moderate Erbschaftssteuer scheint mir sowohl aus Gründen der Effizienz als auch aus Gründen der Verteilgerechtigkeit sinnvoller." - Brülhart</p>
                     </div>
                 </div>
 
-                <div class="highlight-box">
-                    <h3>Was passiert mit Erbschaften?</h3>
-                    <p><strong>Kleinere Erbschaften:</strong> Verflüchtigen sich oft innerhalb von 10 Jahren</p>
-                    <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
-                        <li>Kauf eines neuen Autos</li>
-                        <li>Reduktion des Arbeitspensums</li>
-                        <li>Andere Konsumausgaben</li>
-                    </ul>
-                    <p style="margin-top: 15px;"><strong>Grosse Erbschaften:</strong> Werden nicht konsumiert, sondern weiter geäufnet</p>
-                    <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
-                        <li>Insbesondere Unternehmensanteile</li>
-                        <li>Führen mittelfristig zu weiterer Vermögenskonzentration</li>
-                    </ul>
+                <div class="card-navigation">
+                    <button class="card-nav-btn" id="prev-card" disabled>← Zurück</button>
+                    <button class="card-nav-btn" id="next-card">Weiter →</button>
                 </div>
 
-                <div class="quote">
-                    Die Daten zeigen deutlich, dass Erbschaften das Arbeitsangebot verringern. Insbesondere Personen über 50 Jahre ermöglicht eine Erbschaft oft eine vorzeitige Pensionierung.
-                    <br><br><strong>— Marius Brülhart</strong>
-                </div>
-
-                <div class="warning-box">
-                    <h3>⚠️ Kritik an der Juso-Initiative</h3>
-                    <p>Brülhart warnt vor der 50-prozentigen Steuer:</p>
-                    <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
-                        <li><strong>49-74% der Betroffenen</strong> würden voraussichtlich wegziehen</li>
-                        <li><strong>Bis zu 93%</strong> der betroffenen Vermögen würden abwandern</li>
-                        <li><strong>Staatseinnahmen:</strong> zwischen -0,7 und +0,3 Milliarden Franken</li>
-                        <li>Könnte sogar kontraproduktiv sein</li>
-                    </ul>
-                </div>
-
-                <div class="highlight-box">
-                    <h3>Alternative: Moderate Erbschaftssteuer</h3>
-                    <p>Brülhart empfiehlt eine <strong>Nachlasssteuer von 10% auf Vermögen über 5 Millionen Franken:</strong></p>
-                    <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
-                        <li>Würde die Einnahmenausfälle seit den 1990er Jahren kompensieren</li>
-                        <li>Könnte helfen, die AHV zu finanzieren</li>
-                        <li>Effizienter als weitere Mehrwertsteuer-Erhöhungen</li>
-                        <li>Bestraft nicht diejenigen, die viel leisten</li>
-                    </ul>
-                </div>
-
-                <div class="quote">
-                    Eine moderate Erbschaftssteuer scheint mir sowohl aus Gründen der Effizienz als auch aus Gründen der Verteilgerechtigkeit sinnvoller als weitere Erhöhungen der Mehrwertsteuer oder der Sozialabgaben.
-                    <br><br><strong>— Marius Brülhart</strong>
-                </div>
-
-                <div class="highlight-box">
-                    <h3>Schuldenbremse: Der «Schulden-Rückwärtsgang»</h3>
-                    <p>Die Schweiz hat laut Brülhart <strong>weltweit die strengste Regel</strong>:</p>
-                    <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
-                        <li>Der Bund muss im Durchschnitt einen Überschuss einfahren</li>
-                        <li>Kreditreste müssen automatisch zum Schuldenabbau verwendet werden</li>
-                        <li><strong>Vorschlag:</strong> Korrekturfaktor einbauen → zusätzliche Milliarde Franken pro Jahr</li>
-                        <li>Schulden sollten für Investitionen und Konjunkturstabilisierung eingesetzt werden, nicht für laufende Transferausgaben wie die AHV</li>
-                    </ul>
-                </div>
-
-                <div class="highlight-box">
-                    <h3>Vermögenskonzentration in der Schweiz</h3>
-                    <p>Die Entwicklung ist <strong>hauptsächlich hausgemacht</strong>:</p>
-                    <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
-                        <li>Nur 1/6 der Konzentration ist auf Zuzug vermögender Personen zurückzuführen</li>
-                        <li>In den letzten 20 Jahren ist die Konzentration fast jedes Jahr gestiegen</li>
-                        <li>Die Reichen werden reicher</li>
-                        <li>Anders als in den USA: Schweiz hat keine so zentralisierte Machtstruktur</li>
-                    </ul>
+                <div class="card-dots" id="card-dots">
+                    <div class="dot active"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
                 </div>
             </div>
 
-            <div class="quiz-section">
+            <!-- === SCHRITT 2: GLOSSAR-MEMORY === -->
+            <div class="interactive-section glossary-section" id="glossary-section">
+                <h2>🧩 Schritt 2: Glossar-Memory</h2>
+                <p style="text-align: center; margin-bottom: 20px;">Ordnen Sie die Begriffe den richtigen Definitionen zu. Klicken Sie zuerst auf einen Begriff (blau), dann auf die passende Definition.</p>
+                <div class="activity-progress" id="glossary-progress">0 von 4 Paaren gefunden</div>
+                
+                <div class="glossary-grid" id="glossary-grid">
+                    <!-- Begriffe -->
+                    <div class="glossary-card term" data-id="1">Nachlasssteuer</div>
+                    <div class="glossary-card term" data-id="2">Schuldenbremse</div>
+                    <div class="glossary-card term" data-id="3">Vermögenskonzentration</div>
+                    <div class="glossary-card term" data-id="4">AHV-Finanzierung</div>
+                    
+                    <!-- Definitionen -->
+                    <div class="glossary-card definition" data-id="1">Besteuerung des gesamten Nachlasses, bevor er aufgeteilt wird (im Gegensatz zur Erbschaftssteuer pro Erben)</div>
+                    <div class="glossary-card definition" data-id="2">Schweizer Fiskalregel, die den Bund zwingt, im Durchschnitt einen Überschuss einzufahren - laut Brülhart weltweit die strengste</div>
+                    <div class="glossary-card definition" data-id="3">Anhäufung von Vermögen bei den Reichsten - in der Schweiz halten 1% der Bevölkerung 45% des steuerbaren Vermögens</div>
+                    <div class="glossary-card definition" data-id="4">Problem der Altersvorsorge - Brülhart schlägt moderate Erbschaftssteuer als effizientere Alternative zu Mehrwertsteuer-Erhöhungen vor</div>
+                </div>
+
+                <div class="glossary-feedback" id="glossary-feedback"></div>
+            </div>
+
+            <!-- === SCHRITT 3: ZITATE ZUORDNEN === -->
+            <div class="interactive-section quotes-section" id="quotes-section">
+                <h2>💬 Schritt 3: Zitate im Kontext verstehen</h2>
+                <p style="text-align: center; margin-bottom: 20px;">Ordnen Sie die Zitate dem richtigen thematischen Kontext zu.</p>
+                <div class="activity-progress" id="quotes-progress">0 von 3 Zitaten zugeordnet</div>
+
+                <!-- Zitat 1 -->
+                <div class="quote-pair" data-quote="1" data-correct="1">
+                    <div class="quote-text">
+                        "Die Daten zeigen deutlich, dass Erbschaften das Arbeitsangebot verringern. Insbesondere Personen über 50 Jahre ermöglicht eine Erbschaft oft eine vorzeitige Pensionierung."
+                    </div>
+                    <div class="context-options">
+                        <button class="context-btn" data-answer="1">Auswirkungen von Erbschaften auf das Arbeitsverhalten</button>
+                        <button class="context-btn" data-answer="2">Steuerliche Gerechtigkeit</button>
+                        <button class="context-btn" data-answer="3">Internationale Vergleiche</button>
+                    </div>
+                    <div class="quote-feedback"></div>
+                </div>
+
+                <!-- Zitat 2 -->
+                <div class="quote-pair" data-quote="2" data-correct="1">
+                    <div class="quote-text">
+                        "Eine moderate Erbschaftssteuer scheint mir sowohl aus Gründen der Effizienz als auch aus Gründen der Verteilgerechtigkeit sinnvoller als weitere Erhöhungen der Mehrwertsteuer oder der Sozialabgaben."
+                    </div>
+                    <div class="context-options">
+                        <button class="context-btn" data-answer="1">Alternativen zur Finanzierung der AHV</button>
+                        <button class="context-btn" data-answer="2">Kritik an der Juso-Initiative</button>
+                        <button class="context-btn" data-answer="3">Historische Entwicklung</button>
+                    </div>
+                    <div class="quote-feedback"></div>
+                </div>
+
+                <!-- Zitat 3 -->
+                <div class="quote-pair" data-quote="3" data-correct="2">
+                    <div class="quote-text">
+                        "Der Bund muss im Durchschnitt einen Überschuss einfahren. Mit einem Korrekturfaktor könnte zusätzlicher Spielraum von rund einer Milliarde Franken pro Jahr geschaffen werden."
+                    </div>
+                    <div class="context-options">
+                        <button class="context-btn" data-answer="1">Vermögensverteilung</button>
+                        <button class="context-btn" data-answer="2">Reform der Schuldenbremse</button>
+                        <button class="context-btn" data-answer="3">Abwanderungsrisiken</button>
+                    </div>
+                    <div class="quote-feedback"></div>
+                </div>
+            </div>
+
+            <!-- === QUIZ (GESPERRT) === -->
+            <div class="quiz-section locked" id="quiz-section">
+                <div class="quiz-lock-overlay">
+                    <h3>🔒 Quiz gesperrt</h3>
+                    <p>Bitte schließen Sie erst alle drei interaktiven Aktivitäten ab, um das Quiz freizuschalten.</p>
+                </div>
+
                 <h2>📝 Kontrollfragen zum Interview</h2>
                 <div class="progress-text">Fortschritt: <span id="quiz-progress">0/6</span> Fragen beantwortet</div>
                 <div class="progress-bar">
@@ -580,14 +901,219 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="firebase-config.js"></script>
+    <script src="../firebase-config.js"></script>
 
     <script>
+        // === AKTIVITÄTSSTATUS ===
+        let activitiesCompleted = {
+            cards: false,
+            glossary: false,
+            quotes: false
+        };
+
+        // === KARTEN-AKTIVITÄT ===
+        let currentCardIndex = 1;
+        const totalCards = 4;
+        const viewedCards = new Set([1]);
+
+        function updateCardDisplay() {
+            document.querySelectorAll('.info-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.querySelector(`[data-card="${currentCardIndex}"]`).classList.add('active');
+            document.getElementById('current-card').textContent = currentCardIndex;
+
+            document.getElementById('prev-card').disabled = currentCardIndex === 1;
+            document.getElementById('next-card').textContent = currentCardIndex === totalCards ? 'Abschließen ✓' : 'Weiter →';
+
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, index) => {
+                dot.classList.remove('active');
+                if (viewedCards.has(index + 1)) {
+                    dot.classList.add('completed');
+                }
+            });
+            dots[currentCardIndex - 1].classList.add('active');
+
+            viewedCards.add(currentCardIndex);
+
+            if (viewedCards.size === totalCards && !activitiesCompleted.cards) {
+                activitiesCompleted.cards = true;
+                unlockGlossary();
+            }
+        }
+
+        document.getElementById('prev-card').addEventListener('click', () => {
+            if (currentCardIndex > 1) {
+                currentCardIndex--;
+                updateCardDisplay();
+            }
+        });
+
+        document.getElementById('next-card').addEventListener('click', () => {
+            if (currentCardIndex < totalCards) {
+                currentCardIndex++;
+                updateCardDisplay();
+            } else if (currentCardIndex === totalCards) {
+                activitiesCompleted.cards = true;
+                unlockGlossary();
+                document.getElementById('glossary-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+
+        function unlockGlossary() {
+            document.getElementById('glossary-section').classList.add('unlocked');
+        }
+
+        // === GLOSSAR-MEMORY ===
+        let selectedTerm = null;
+        let matchedPairs = new Set();
+        const totalPairs = 4;
+
+        document.querySelectorAll('.glossary-card').forEach(card => {
+            card.addEventListener('click', function() {
+                if (this.classList.contains('matched')) return;
+
+                const cardId = this.dataset.id;
+                const isTerm = this.classList.contains('term');
+
+                if (isTerm) {
+                    // Term ausgewählt
+                    document.querySelectorAll('.glossary-card.selected').forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedTerm = cardId;
+                } else {
+                    // Definition ausgewählt
+                    if (!selectedTerm) {
+                        showGlossaryFeedback('Bitte wählen Sie zuerst einen Begriff (blau) aus!', false);
+                        return;
+                    }
+
+                    const definitionId = cardId;
+
+                    if (selectedTerm === definitionId) {
+                        // Richtig!
+                        document.querySelectorAll(`[data-id="${selectedTerm}"]`).forEach(c => {
+                            c.classList.add('matched');
+                            c.classList.remove('selected');
+                        });
+                        matchedPairs.add(selectedTerm);
+                        selectedTerm = null;
+                        
+                        updateGlossaryProgress();
+                        showGlossaryFeedback('✓ Richtig! Passendes Paar gefunden.', true);
+
+                        if (matchedPairs.size === totalPairs && !activitiesCompleted.glossary) {
+                            activitiesCompleted.glossary = true;
+                            setTimeout(() => {
+                                unlockQuotes();
+                            }, 1500);
+                        }
+                    } else {
+                        // Falsch
+                        showGlossaryFeedback('✗ Nicht ganz. Versuchen Sie es erneut!', false);
+                        setTimeout(() => {
+                            document.querySelectorAll('.glossary-card.selected').forEach(c => c.classList.remove('selected'));
+                            selectedTerm = null;
+                        }, 1500);
+                    }
+                }
+            });
+        });
+
+        function updateGlossaryProgress() {
+            document.getElementById('glossary-progress').textContent = `${matchedPairs.size} von ${totalPairs} Paaren gefunden`;
+        }
+
+        function showGlossaryFeedback(message, isCorrect) {
+            const feedback = document.getElementById('glossary-feedback');
+            feedback.className = `glossary-feedback show ${isCorrect ? 'correct' : 'incorrect'}`;
+            feedback.textContent = message;
+            
+            setTimeout(() => {
+                feedback.classList.remove('show');
+            }, 2000);
+        }
+
+        function unlockQuotes() {
+            document.getElementById('quotes-section').classList.add('unlocked');
+            document.getElementById('quotes-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            const badge = document.createElement('div');
+            badge.className = 'unlock-badge';
+            badge.textContent = '🔓 Zitate-Aktivität freigeschaltet!';
+            badge.style.marginTop = '20px';
+            document.getElementById('glossary-section').appendChild(badge);
+        }
+
+        // === ZITATE-AKTIVITÄT ===
+        let answeredQuotes = new Set();
+        const totalQuotes = 3;
+
+        document.querySelectorAll('.quote-pair').forEach(pair => {
+            const buttons = pair.querySelectorAll('.context-btn');
+            const quoteNum = pair.dataset.quote;
+            const correctAnswer = pair.dataset.correct;
+
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    if (answeredQuotes.has(quoteNum)) return;
+
+                    const userAnswer = this.dataset.answer;
+                    const feedback = pair.querySelector('.quote-feedback');
+                    const isCorrect = userAnswer === correctAnswer;
+
+                    buttons.forEach(btn => btn.disabled = true);
+
+                    if (isCorrect) {
+                        this.classList.add('correct');
+                        feedback.className = 'quote-feedback correct show';
+                        feedback.textContent = '✓ Richtig! Dieses Zitat passt perfekt zum gewählten Kontext.';
+                    } else {
+                        this.classList.add('incorrect');
+                        buttons.forEach(btn => {
+                            if (btn.dataset.answer === correctAnswer) {
+                                btn.classList.add('correct');
+                            }
+                        });
+                        feedback.className = 'quote-feedback incorrect show';
+                        feedback.textContent = '✗ Nicht ganz. Die richtige Zuordnung wurde markiert.';
+                    }
+
+                    answeredQuotes.add(quoteNum);
+                    updateQuotesProgress();
+
+                    if (answeredQuotes.size === totalQuotes && !activitiesCompleted.quotes) {
+                        activitiesCompleted.quotes = true;
+                        setTimeout(() => {
+                            unlockQuiz();
+                        }, 1500);
+                    }
+                });
+            });
+        });
+
+        function updateQuotesProgress() {
+            document.getElementById('quotes-progress').textContent = `${answeredQuotes.size} von ${totalQuotes} Zitaten zugeordnet`;
+        }
+
+        function unlockQuiz() {
+            const quizSection = document.getElementById('quiz-section');
+            quizSection.classList.remove('locked');
+            quizSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            const badge = document.createElement('div');
+            badge.className = 'unlock-badge';
+            badge.textContent = '🔓 Quiz freigeschaltet!';
+            badge.style.marginTop = '20px';
+            document.getElementById('quotes-section').appendChild(badge);
+        }
+
+        // === QUIZ ===
         let currentQuestion = 1;
         let answeredQuestions = new Set();
         const totalQuestions = 6;
 
-        // Event Listeners für alle Optionen
         document.querySelectorAll('.option').forEach(option => {
             option.addEventListener('click', function() {
                 const question = this.closest('.question');
@@ -596,14 +1122,11 @@
                 const feedback = question.querySelector('.feedback');
                 const nextButton = question.querySelector('.next-button');
                 
-                // Wenn schon beantwortet, nicht mehr ändern
                 if (answeredQuestions.has(questionNum)) return;
                 
-                // Auswahl markieren
                 options.forEach(opt => opt.classList.remove('selected'));
                 this.classList.add('selected');
                 
-                // Antwort prüfen
                 const isCorrect = this.dataset.answer === 'correct';
                 
                 setTimeout(() => {
@@ -613,7 +1136,6 @@
                         feedback.textContent = '✓ Richtig! ' + getCorrectFeedback(questionNum);
                     } else {
                         this.classList.add('incorrect');
-                        // Richtige Antwort auch anzeigen
                         options.forEach(opt => {
                             if (opt.dataset.answer === 'correct') {
                                 opt.classList.add('correct');
@@ -627,9 +1149,6 @@
                     answeredQuestions.add(questionNum);
                     nextButton.classList.add('show');
                     updateProgress();
-                    
-                    // Firebase tracking
-                    trackQuizAnswer('artikel2', questionNum, isCorrect);
                 }, 300);
             });
         });
@@ -645,7 +1164,6 @@
                 nextQ.classList.add('active');
             } else {
                 document.getElementById('completion-message').classList.add('show');
-                markArticleComplete('artikel2');
             }
         }
 
@@ -659,45 +1177,17 @@
             const feedbacks = {
                 '1': 'Vor 20 Jahren begann Brülhart, die Zahlen zu verfolgen – seither ist die Konzentration fast jedes Jahr gestiegen.',
                 '2': 'Eine schwedische Studie zeigt: Viele Erben kaufen ein Auto, reduzieren ihr Arbeitspensum oder geben das Geld anderweitig aus.',
-                '3': 'Je höher die Lebenserwartung der Erblasser, desto älter ist auch die Generation der Erben. Bei einem 90-jährigen Erblasser stehen die Kinder meist kurz vor der Pensionierung.',
+                '3': 'Je höher die Lebenserwartung der Erblasser, desto älter ist auch die Generation der Erben.',
                 '4': 'Wegen der hohen Abwanderungsgefahr (49-74% der Betroffenen) würde die Initiative kaum zusätzliche Einnahmen generieren.',
-                '5': 'Dieser Ansatz würde laut Brülhart die Einnahmenausfälle seit den 1990er Jahren kompensieren und könnte helfen, die AHV zu finanzieren.',
-                '6': 'Der Bund muss im Durchschnitt einen Überschuss einfahren. Mit einem Korrekturfaktor könnte zusätzlicher Spielraum von rund einer Milliarde Franken pro Jahr geschaffen werden.'
+                '5': 'Dieser Ansatz würde laut Brülhart die Einnahmenausfälle seit den 1990er Jahren kompensieren.',
+                '6': 'Der Bund muss im Durchschnitt einen Überschuss einfahren. Mit einem Korrekturfaktor könnte zusätzlicher Spielraum geschaffen werden.'
             };
             return feedbacks[questionNum] || '';
         }
 
-        // Fortschritt beim Laden wiederherstellen
+        // Beim Laden
         window.addEventListener('load', () => {
-            const savedProgress = localStorage.getItem('artikel2_progress');
-            if (savedProgress) {
-                const progress = JSON.parse(savedProgress);
-                answeredQuestions = new Set(progress.answered);
-                currentQuestion = progress.current;
-                
-                // Zeige die aktuelle Frage
-                document.querySelectorAll('.question').forEach(q => q.classList.remove('active'));
-                if (currentQuestion <= totalQuestions) {
-                    document.querySelector(`[data-question="${currentQuestion}"]`).classList.add('active');
-                }
-                
-                updateProgress();
-                
-                if (answeredQuestions.size === totalQuestions) {
-                    document.getElementById('completion-message').classList.add('show');
-                }
-            }
-            
-            // Seitenbesuch tracken
-            trackPageVisit('artikel2');
-        });
-
-        // Fortschritt speichern
-        window.addEventListener('beforeunload', () => {
-            localStorage.setItem('artikel2_progress', JSON.stringify({
-                answered: [...answeredQuestions],
-                current: currentQuestion
-            }));
+            console.log('Page visited: artikel2');
         });
     </script>
 </body>
