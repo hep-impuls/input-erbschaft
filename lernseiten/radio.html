@@ -481,8 +481,8 @@
                 <div class="listening-indicator" id="listeningIndicator">
                     <span class="listening-icon">⏱️</span>
                     <span class="listening-text">
-                        Bitte hören Sie den Radiobeitrag vollständig an. 
-                        <span class="timer-display" id="timerDisplay">Verbleibende Zeit: --:--</span>
+                        <strong>Wichtig:</strong> Bitte hören Sie den Radiobeitrag vollständig und ohne Vorspulen an. 
+                        Die Lernkontrollen werden anschliessend automatisch aufgeschaltet.
                     </span>
                 </div>
             </div>
@@ -705,14 +705,6 @@
             checkInterval = setInterval(() => {
                 if (!audioCompleted) {
                     timeWatched += 5;
-                    
-                    // Berechne verbleibende Zeit
-                    const remaining = Math.max(0, AUDIO_DURATION - timeWatched);
-                    const minutes = Math.floor(remaining / 60);
-                    const seconds = remaining % 60;
-                    
-                    document.getElementById('timerDisplay').textContent = 
-                        `Verbleibende Zeit: ${minutes}:${seconds.toString().padStart(2, '0')}`;
                     
                     // Prüfe, ob Audio komplett gehört wurde
                     if (timeWatched >= AUDIO_DURATION) {
