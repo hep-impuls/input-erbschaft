@@ -111,6 +111,55 @@ function trackMediaWatched(pageName, mediaType, percentage) {
 }
 
 // ==========================================
+// ZUSÄTZLICHE FUNKTIONEN FÜR ARTIKEL-SEITEN
+// ==========================================
+
+// Seitenbesuch tracken (kompatibel mit artikel1-4.html)
+function trackPageVisit(pageName) {
+    const userCode = getCurrentUserCode();
+    const timestamp = getTimestamp();
+    
+    database.ref(`users/${userCode}/visits/${pageName}`).push({
+        visited: true,
+        timestamp: timestamp
+    }).then(() => {
+        console.log(`✅ Seitenbesuch getrackt: ${pageName}`);
+    }).catch(error => {
+        console.error('Fehler beim Besuchs-Tracking:', error);
+    });
+}
+
+// Quiz-Antwort einzeln speichern (für jede Frage)
+function trackQuizAnswer(articleId, questionNum, isCorrect) {
+    const userCode = getCurrentUserCode();
+    const timestamp = getTimestamp();
+    
+    database.ref(`users/${userCode}/quizAnswers/${articleId}/q${questionNum}`).set({
+        correct: isCorrect,
+        timestamp: timestamp
+    }).then(() => {
+        console.log(`✅ Quiz-Antwort gespeichert: ${articleId} Frage ${questionNum} - ${isCorrect ? 'Richtig' : 'Falsch'}`);
+    }).catch(error => {
+        console.error('Fehler beim Antwort-Tracking:', error);
+    });
+}
+
+// Artikel als komplett abgeschlossen markieren
+function markArticleComplete(articleId) {
+    const userCode = getCurrentUserCode();
+    const timestamp = getTimestamp();
+    
+    database.ref(`users/${userCode}/completions/${articleId}`).set({
+        completed: true,
+        timestamp: timestamp
+    }).then(() => {
+        console.log(`✅ Artikel abgeschlossen: ${articleId}`);
+    }).catch(error => {
+        console.error('Fehler beim Completion-Tracking:', error);
+    });
+}
+
+// ==========================================
 // DASHBOARD DATEN ABRUFEN
 // ==========================================
 
