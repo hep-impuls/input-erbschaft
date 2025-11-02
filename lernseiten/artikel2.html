@@ -974,6 +974,125 @@ function markArticleComplete(pageName) {
     });
 }
 
+// === LOCALSTORAGE PROGRESS PERSISTIERUNG ===
+
+const STORAGE_KEY = 'artikel2_progress';
+
+function saveProgress() {
+    const progress = {
+        // Karten
+        currentCardIndex: currentCardIndex,
+        viewedCards: Array.from(viewedCards),
+        cardsCompleted: activitiesCompleted.cards,
+        
+        // Glossar
+        matchedPairs: Array.from(matchedPairs),
+        glossaryCompleted: activitiesCompleted.glossary,
+        
+        // Zitate
+        answeredQuotes: Array.from(answeredQuotes),
+        quotesCompleted: activitiesCompleted.quotes,
+        
+        // Quiz
+        currentQuestion: currentQuestion,
+        answeredQuestions: Array.from(answeredQuestions),
+        correctQuizAnswers: correctQuizAnswers
+    };
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    console.log('💾 Progress saved:', progress);
+}
+
+function loadProgress() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) {
+        console.log('ℹ️ No saved progress found');
+        return null;
+    }
+    
+    try {
+        const progress = JSON.parse(saved);
+        console.log('📂 Progress loaded:', progress);
+        return progress;
+    } catch (e) {
+        console.error('❌ Error loading progress:', e);
+        return null;
+    }
+}
+
+function restoreProgress(progress) {
+    if (!progress) return;
+    
+    // Karten wiederherstellen
+    if (progress.viewedCards) {
+        progress.viewedCards.forEach(card => viewedCards.add(card));
+        currentCardIndex = progress.currentCardIndex || 1;
+        updateCardDisplay();
+    }
+    
+    if (progress.cardsCompleted) {
+        activitiesCompleted.cards = true;
+        unlockGlossary();
+    }
+    
+    // Glossar wiederherstellen
+    if (progress.matchedPairs) {
+        progress.matchedPairs.forEach(id => {
+            matchedPairs.add(id);
+            document.querySelectorAll(`[data-id="${id}"]`).forEach(card => {
+                card.classList.add('matched');
+            });
+        });
+        updateGlossaryProgress();
+    }
+    
+    if (progress.glossaryCompleted) {
+        activitiesCompleted.glossary = true;
+        unlockQuotes();
+    }
+    
+    // Zitate wiederherstellen
+    if (progress.answeredQuotes) {
+        progress.answeredQuotes.forEach(quoteNum => {
+            answeredQuotes.add(quoteNum);
+            const pair = document.querySelector(`[data-quote="${quoteNum}"]`);
+            if (pair) {
+                const correctAnswer = pair.dataset.correct;
+                const buttons = pair.querySelectorAll('.context-btn');
+                
+                buttons.forEach(btn => {
+                    btn.disabled = true;
+                    if (btn.dataset.answer === correctAnswer) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+        });
+        updateQuotesProgress();
+    }
+    
+    if (progress.quotesCompleted) {
+        activitiesCompleted.quotes = true;
+        unlockQuiz();
+    }
+    
+    // Quiz wiederherstellen
+    if (progress.answeredQuestions) {
+        progress.answeredQuestions.forEach(q => answeredQuestions.add(q));
+        currentQuestion = progress.currentQuestion || 1;
+        correctQuizAnswers = progress.correctQuizAnswers || 0;
+        
+        // Zeige aktuelle Frage
+        document.querySelectorAll('.question').forEach(q => q.classList.remove('active'));
+        const currentQ = document.querySelector(`[data-question="${currentQuestion}"]`);
+        if (currentQ) currentQ.classList.add('active');
+        
+        updateProgress();
+    }
+    
+    console.log('✅ Progress restored successfully');
+}
+
 // === AKTIVITÄTSSTATUS ===
 let activitiesCompleted = {
     cards: false,
@@ -1011,6 +1130,8 @@ function updateCardDisplay() {
         activitiesCompleted.cards = true;
         unlockGlossary();
     }
+    
+    saveProgress();
 }
 
 document.getElementById('prev-card').addEventListener('click', () => {
@@ -1027,6 +1148,7 @@ document.getElementById('next-card').addEventListener('click', () => {
     } else if (currentCardIndex === totalCards) {
         activitiesCompleted.cards = true;
         unlockGlossary();
+        saveProgress();
         document.getElementById('glossary-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 });
@@ -1072,11 +1194,13 @@ document.querySelectorAll('.glossary-card').forEach(card => {
                 
                 updateGlossaryProgress();
                 showGlossaryFeedback('✓ Richtig! Passendes Paar gefunden.', true);
+                saveProgress();
 
                 if (matchedPairs.size === totalPairs && !activitiesCompleted.glossary) {
                     activitiesCompleted.glossary = true;
                     setTimeout(() => {
                         unlockQuotes();
+                        saveProgress();
                     }, 1500);
                 }
             } else {
@@ -1109,11 +1233,14 @@ function unlockQuotes() {
     document.getElementById('quotes-section').classList.add('unlocked');
     document.getElementById('quotes-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
     
-    const badge = document.createElement('div');
-    badge.className = 'unlock-badge';
-    badge.textContent = '🔓 Zitate-Aktivität freigeschaltet!';
-    badge.style.marginTop = '20px';
-    document.getElementById('glossary-section').appendChild(badge);
+    const existingBadge = document.querySelector('#glossary-section .unlock-badge');
+    if (!existingBadge) {
+        const badge = document.createElement('div');
+        badge.className = 'unlock-badge';
+        badge.textContent = '🔓 Zitate-Aktivität freigeschaltet!';
+        badge.style.marginTop = '20px';
+        document.getElementById('glossary-section').appendChild(badge);
+    }
 }
 
 // === ZITATE-AKTIVITÄT ===
@@ -1152,11 +1279,13 @@ document.querySelectorAll('.quote-pair').forEach(pair => {
 
             answeredQuotes.add(quoteNum);
             updateQuotesProgress();
+            saveProgress();
 
             if (answeredQuotes.size === totalQuotes && !activitiesCompleted.quotes) {
                 activitiesCompleted.quotes = true;
                 setTimeout(() => {
                     unlockQuiz();
+                    saveProgress();
                 }, 1500);
             }
         });
@@ -1172,11 +1301,14 @@ function unlockQuiz() {
     quizSection.classList.remove('locked');
     quizSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     
-    const badge = document.createElement('div');
-    badge.className = 'unlock-badge';
-    badge.textContent = '🔓 Quiz freigeschaltet!';
-    badge.style.marginTop = '20px';
-    document.getElementById('quotes-section').appendChild(badge);
+    const existingBadge = document.querySelector('#quotes-section .unlock-badge');
+    if (!existingBadge) {
+        const badge = document.createElement('div');
+        badge.className = 'unlock-badge';
+        badge.textContent = '🔓 Quiz freigeschaltet!';
+        badge.style.marginTop = '20px';
+        document.getElementById('quotes-section').appendChild(badge);
+    }
 }
 
 // === QUIZ ===
@@ -1221,6 +1353,7 @@ document.querySelectorAll('.option').forEach(option => {
             answeredQuestions.add(questionNum);
             nextButton.classList.add('show');
             updateProgress();
+            saveProgress();
         }, 300);
     });
 });
@@ -1234,6 +1367,7 @@ function showNextQuestion() {
     if (currentQuestion <= totalQuestions) {
         const nextQ = document.querySelector(`[data-question="${currentQuestion}"]`);
         nextQ.classList.add('active');
+        saveProgress();
     } else {
         // Quiz abgeschlossen
         document.getElementById('completion-message').classList.add('show');
@@ -1246,6 +1380,9 @@ function showNextQuestion() {
         
         // Tracking: Time Spent
         trackTimeSpent('artikel2');
+        
+        // Progress löschen (optional, da Artikel abgeschlossen)
+        // localStorage.removeItem(STORAGE_KEY);
         
         console.log('📊 Final Stats:');
         console.log('  - Correct Quiz Answers:', correctQuizAnswers, '/', totalQuestions);
@@ -1270,19 +1407,33 @@ function getCorrectFeedback(questionNum) {
     return feedbacks[questionNum] || '';
 }
 
-// Beim Laden: Page Visit tracken
+// === INITIALIZATION ===
 window.addEventListener('load', () => {
     const userCode = getUserCode();
     console.log('=== ARTIKEL 2 GELADEN ===');
     console.log('User:', userCode);
     console.log('Tracking zu: users/' + userCode + '/');
+    
+    // Page Visit tracken
     trackPageVisit('artikel2');
+    
+    // Progress wiederherstellen
+    const savedProgress = loadProgress();
+    if (savedProgress) {
+        restoreProgress(savedProgress);
+    }
 });
 
-// Beim Verlassen: Time Spent tracken
+// Beim Verlassen: Time Spent tracken und Progress speichern
 window.addEventListener('beforeunload', () => {
     trackTimeSpent('artikel2');
+    saveProgress();
 });
+
+// Periodisches Speichern alle 30 Sekunden
+setInterval(() => {
+    saveProgress();
+}, 30000);
     </script>
 </body>
 </html>
