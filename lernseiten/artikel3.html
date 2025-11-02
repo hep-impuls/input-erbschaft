@@ -96,6 +96,7 @@
             padding: 20px;
             background: white;
             border-radius: 10px;
+            min-height: 100px; /* Sicherstellen, dass der Pool sichtbar ist */
         }
 
         .country-chip {
@@ -104,10 +105,16 @@
             padding: 12px 20px;
             border-radius: 25px;
             text-align: center;
-            cursor: move;
+            cursor: grab; /* Geändert auf grab */
             font-weight: 600;
             transition: all 0.3s;
             user-select: none;
+        }
+        
+        /* Neuer Stil für platzierte Chips in den Drop-Zonen */
+        .drop-zone .country-chip {
+            cursor: move; /* Move in der Zone */
+            opacity: 1 !important; /* Volle Sichtbarkeit in der Dropzone */
         }
 
         .country-chip:hover {
@@ -117,11 +124,17 @@
 
         .country-chip.dragging {
             opacity: 0.5;
+            cursor: grabbing;
         }
 
         .country-chip.placed {
             background: #4caf50;
             cursor: default;
+        }
+        
+        /* Chips, die im Pool versteckt sind, aber platziert wurden */
+        .countries-pool .country-chip.placed {
+            display: none; 
         }
 
         .timeline-drops {
@@ -1164,17 +1177,21 @@
          * Speichert den aktuellen Fortschritt aller Aktivitäten ab.
          * @param {string} pageName - Der Name der aktuellen Seite.
          * @param {object} progressState - Der aktuelle Zustand des activitiesCompleted-Objekts.
+         * @param {object} [extraData] - Zusätzliche Daten, z.B. der Zustand der Timeline.
          */
-        export async function saveProgressState(pageName, progressState) {
+        export async function saveProgressState(pageName, progressState, extraData = {}) {
             const docRef = getUserDocRef(pageName);
             if (!docRef) return;
             
+            const updatePayload = {
+                activitiesProgress: progressState,
+                lastActivityTime: serverTimestamp(),
+                ...extraData
+            };
+            
             try {
                 // Aktualisiert den gesamten Fortschrittszustand des Moduls
-                await updateDoc(docRef, {
-                    activitiesProgress: progressState,
-                    lastActivityTime: serverTimestamp()
-                });
+                await updateDoc(docRef, updatePayload);
                 console.log('✓ Activity progress state saved:', progressState);
             } catch (err) {
                 // Fallback: Falls das Dokument nicht existiert, versuchen wir es mit setDoc zu erstellen
@@ -1182,7 +1199,7 @@
                 try {
                      await setDoc(docRef, {
                         pageName: pageName,
-                        activitiesProgress: progressState,
+                        ...updatePayload,
                         firstVisit: serverTimestamp()
                     }, { merge: true });
                     console.log('✓ Activity progress saved via setDoc fallback.');
@@ -1197,8 +1214,6 @@
          */
         export async function loadProgressAndInitializeUI() {
             if (!firebaseReady) {
-                // Kann hier nicht geladen werden, weil Firebase noch nicht bereit ist.
-                // Es wird direkt nach der Authentifizierung aufgerufen (siehe AuthPromise).
                 return;
             }
             const docRef = getUserDocRef(PAGE_NAME);
@@ -1207,12 +1222,16 @@
             try {
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists() && docSnap.data().activitiesProgress) {
-                    const loadedProgress = docSnap.data().activitiesProgress;
-                    console.log('✓ Progress geladen:', loadedProgress);
+                    const data = docSnap.data();
+                    const loadedProgress = data.activitiesProgress;
+                    const loadedTimeline = data.timelineState || {}; // Timeline-Zustand laden
                     
+                    console.log('✓ Progress geladen:', loadedProgress);
+                    console.log('✓ Timeline-Zustand geladen:', loadedTimeline);
+
                     // Aufruf der globalen Funktion in der Hauptlogik
                     if (window.applyLoadedProgress) {
-                        window.applyLoadedProgress(loadedProgress);
+                        window.applyLoadedProgress(loadedProgress, loadedTimeline);
                     }
                 }
             } catch (err) {
@@ -1241,12 +1260,19 @@
         };
 
         // === ZUSÄTZLICHE FUNKTION ZUM ANWENDEN DES GELADENEN FORTSCHRITTS ===
-        window.applyLoadedProgress = function(progress) {
+        window.applyLoadedProgress = function(progress, timelineState) {
             // 1. Internen Zustand aktualisieren
             activitiesCompleted = progress;
             console.log('UI-Zustand angewendet:', activitiesCompleted);
             
             // 2. UI-Elemente freischalten basierend auf dem Zustand
+            
+            // --- Timeline-Status wiederherstellen ---
+            if (timelineState && Object.keys(timelineState).length > 0) {
+                 // Setze den Zustand der Drop-Zonen und Chips
+                 restoreTimelineState(timelineState);
+            }
+            
             if (progress.timeline) {
                 // Timeline ist abgeschlossen -> Comparison freischalten & Timeline sperren
                 unlockComparison(true);
@@ -1256,38 +1282,69 @@
                     // Verhindert Interaktion mit der abgeschlossenen Timeline
                     timelineSection.style.opacity = '0.7'; 
                     timelineSection.style.pointerEvents = 'none';
+                    document.getElementById('check-timeline').style.display = 'none';
                 }
             }
             if (progress.comparison) {
                 // Comparison ist abgeschlossen -> Facts freischalten
                 unlockFacts(true);
+                 // Sperre die gesamte Vergleichssektion (da abgeschlossen)
+                const comparisonSection = document.getElementById('comparison-section');
+                comparisonSection.style.opacity = '0.7'; 
+                comparisonSection.style.pointerEvents = 'none';
             }
             if (progress.facts) {
                 // Facts ist abgeschlossen -> Quiz freischalten
                 unlockQuiz(true);
+                 // Sperre die gesamte Faktencheck-Sektion (da abgeschlossen)
+                const factsSection = document.getElementById('facts-section');
+                factsSection.style.opacity = '0.7'; 
+                factsSection.style.pointerEvents = 'none';
             }
         };
 
         // === TIMELINE DRAG & DROP ===
         let draggedElement = null;
-        const placedCountries = new Map(); // country -> {year, element}
+        // Speichert nur die Platzierungen: { country: year, ... }
+        const placedCountries = {}; 
 
         function setupDragAndDrop() {
             // Setup draggable chips
             document.querySelectorAll('.country-chip').forEach(chip => {
                 chip.draggable = true;
-                chip.style.cursor = 'move';
-                chip.style.opacity = '1';
+                chip.style.cursor = 'grab';
                 chip.classList.remove('placed', 'dragging');
 
                 chip.addEventListener('dragstart', function(e) {
-                    if (this.classList.contains('placed') || !activitiesCompleted.timeline && document.getElementById('timeline-section-main').style.pointerEvents === 'none') {
+                    if (activitiesCompleted.timeline) {
                         e.preventDefault();
                         return;
                     }
+
+                    // 1. Wenn der Chip bereits in einer Zone ist, wird er von dort "freigezogen"
+                    const currentZone = this.closest('.drop-zone');
+                    if (currentZone) {
+                        const country = this.dataset.country;
+                        // Entferne den Chip aus der Datenstruktur
+                        delete placedCountries[country];
+                        // Entferne den Chip visuell aus der Dropzone
+                        currentZone.querySelector('.drop-zone-content').removeChild(this); 
+                        // Setze den originalen Chip im Pool wieder auf sichtbar und ziehbar
+                        const originalChipInPool = document.querySelector(`#countries-pool .country-chip[data-country="${country}"]`);
+                        if(originalChipInPool) {
+                             originalChipInPool.style.display = 'block';
+                             originalChipInPool.classList.remove('placed');
+                             originalChipInPool.draggable = true;
+                        }
+                    }
+
                     draggedElement = this;
                     this.classList.add('dragging');
                     e.dataTransfer.effectAllowed = 'move';
+                    
+                    // Speichere den Zwischenstand nach dem Freiziehen
+                    if (window.saveProgressState) window.saveProgressState(PAGE_NAME, activitiesCompleted, { timelineState: placedCountries });
+                    updateTimelineProgress();
                 });
 
                 chip.addEventListener('dragend', function() {
@@ -1299,14 +1356,13 @@
             // Setup drop zones (Unverändert, Drag/Drop Logic)
             document.querySelectorAll('.drop-zone').forEach(zone => {
                 zone.classList.remove('drag-over', 'correct', 'incorrect');
-                zone.querySelector('.drop-zone-content').innerHTML = '';
-
-
+                
                 zone.addEventListener('dragover', function(e) {
                     e.preventDefault();
                     e.dataTransfer.dropEffect = 'move';
                     
                     const content = this.querySelector('.drop-zone-content');
+                    // Zone nur erlauben, wenn sie leer ist
                     if (!content.querySelector('.country-chip') && draggedElement) {
                         this.classList.add('drag-over');
                     } else {
@@ -1327,30 +1383,37 @@
                     const content = this.querySelector('.drop-zone-content');
                     if (content.querySelector('.country-chip')) return;
                     
-                    const clone = draggedElement.cloneNode(true);
-                    clone.draggable = false;
-                    clone.style.cursor = 'default';
+                    // Der Chip, der gerade gezogen wird (entweder aus dem Pool oder einer anderen Zone)
+                    const chipToPlace = draggedElement;
+                    
+                    // 1. Neuen Chip-Klon in die Dropzone setzen
+                    const clone = chipToPlace.cloneNode(true);
+                    clone.draggable = true; // Erlaubt erneutes Ziehen aus der Drop-Zone
+                    clone.style.cursor = 'move';
                     clone.classList.remove('dragging');
                     content.appendChild(clone);
                     
-                    draggedElement.classList.add('placed');
-                    draggedElement.draggable = false;
-                    draggedElement.style.opacity = '0.3'; 
-                    
-                    const country = draggedElement.dataset.country;
-                    const year = this.dataset.year;
+                    // 2. Originalen Chip im Pool (falls von dort gezogen) als platziert markieren (visuell entfernen)
+                    const country = chipToPlace.dataset.country;
 
-                    placedCountries.set(country, {
-                        year: year,
-                        zone: this,
-                        clone: clone,
-                        original: draggedElement
-                    });
+                    const originalInPool = document.querySelector(`#countries-pool .country-chip[data-country="${country}"]`);
+                    if (originalInPool) {
+                        originalInPool.classList.add('placed');
+                        originalInPool.style.display = 'none';
+                    }
                     
+                    // 3. Daten speichern
+                    const year = this.dataset.year;
+                    placedCountries[country] = year; // Speichere country -> year
+                    
+                    // 4. UI und Tracking aktualisieren
                     updateTimelineProgress();
+                    // Speichere den Zwischenstand
+                    if (window.saveProgressState) window.saveProgressState(PAGE_NAME, activitiesCompleted, { timelineState: placedCountries });
+
                     
                     const checkBtn = document.getElementById('check-timeline');
-                    if (placedCountries.size === 6) {
+                    if (Object.keys(placedCountries).length === 6) {
                         checkBtn.disabled = false;
                         checkBtn.style.opacity = '1';
                         checkBtn.style.background = '#5eb9b4';
@@ -1360,9 +1423,41 @@
                 });
             });
         }
+        
+        /**
+         * Stellt den Zustand der Timeline (Chips in Drop-Zonen) beim Laden wieder her.
+         */
+        function restoreTimelineState(timelineState) {
+            const pool = document.getElementById('countries-pool');
+
+            for (const country in timelineState) {
+                const year = timelineState[country];
+                const originalChip = document.querySelector(`#countries-pool .country-chip[data-country="${country}"]`);
+                const dropZone = document.querySelector(`.drop-zone[data-year="${year}"] .drop-zone-content`);
+
+                if (originalChip && dropZone) {
+                    // 1. Original-Chip im Pool verstecken
+                    originalChip.classList.add('placed');
+                    originalChip.style.display = 'none';
+
+                    // 2. Klon in Drop-Zone erstellen
+                    const clone = originalChip.cloneNode(true);
+                    clone.draggable = true; // Wieder ziehbar machen
+                    clone.style.cursor = 'move';
+                    clone.classList.remove('dragging', 'placed');
+                    clone.style.opacity = '1'; // Sichtbarkeit in Drop-Zone sicherstellen
+                    dropZone.appendChild(clone);
+
+                    // 3. Daten in den lokalen Zustand übernehmen
+                    placedCountries[country] = year;
+                }
+            }
+            updateTimelineProgress();
+        }
+
 
         function updateTimelineProgress() {
-            const count = placedCountries.size;
+            const count = Object.keys(placedCountries).length;
             document.getElementById('timeline-progress').textContent = `${count} von 6 Ländern zugeordnet`;
         }
 
@@ -1402,7 +1497,8 @@
                 document.getElementById('timeline-section-main').style.pointerEvents = 'none';
 
                 // TRACKING: Speichere den gesamten Fortschrittszustand (FIREBASE)
-                if (window.saveProgressState) window.saveProgressState(PAGE_NAME, activitiesCompleted);
+                // Hier wird timelineState nicht mehr benötigt, da abgeschlossen.
+                if (window.saveProgressState) window.saveProgressState(PAGE_NAME, activitiesCompleted); 
                 
                 setTimeout(() => {
                     unlockComparison();
@@ -1410,35 +1506,18 @@
                 }, 1500);
             } else {
                 feedback.className = 'timeline-feedback incorrect show';
-                feedback.innerHTML = '✗ Nicht ganz. Einige Zuordnungen sind noch nicht korrekt. Versuchen Sie es erneut!<br><small style="margin-top: 10px; display: block;">Tipp: Ordnen Sie jedes Land dem Jahr zu, in dem es die Erbschaftssteuer abschaffte.</small>';
+                feedback.innerHTML = '✗ Nicht ganz. Einige Zuordnungen sind noch nicht korrekt. Versuchen Sie es erneut!<br><small style="margin-top: 10px; display: block;">Tipp: Verschieben Sie falsch platzierte Chips aus der Zone zurück in den Pool oder in eine neue Zone.</small>';
                 
-                setTimeout(() => {
-                    resetTimeline();
-                }, 3000);
+                // Beim Fehler wird nicht automatisch zurückgesetzt, damit der Nutzer die Chips korrigieren kann
+                // Aber der Check-Button wird wieder aktiviert, falls er disabled war.
+                checkBtn.disabled = false;
+                checkBtn.style.opacity = '1';
+                checkBtn.style.background = '#5eb9b4';
             }
         }
 
         function resetTimeline() {
-            document.querySelectorAll('.drop-zone').forEach(zone => {
-                zone.classList.remove('correct', 'incorrect');
-                zone.querySelector('.drop-zone-content').innerHTML = '';
-            });
-            
-            document.querySelectorAll('.country-chip').forEach(chip => {
-                chip.classList.remove('placed');
-                chip.draggable = true;
-                chip.style.cursor = 'move';
-                chip.style.opacity = '1';
-            });
-            
-            placedCountries.clear();
-            
-            updateTimelineProgress();
-            const checkBtn = document.getElementById('check-timeline');
-            checkBtn.disabled = true;
-            checkBtn.style.opacity = '0.5';
-            checkBtn.style.background = '#ccc';
-            document.getElementById('timeline-feedback').classList.remove('show');
+            // ... (optional: könnte entfernt werden, da der Benutzer nun manuell korrigieren kann)
         }
 
         // isInitialLoad Flag hinzugefügt
@@ -1457,11 +1536,7 @@
                 }, 100);
                 
                 // Add visual badge only on completion
-                const badge = document.createElement('div');
-                badge.className = 'unlock-badge';
-                badge.textContent = '🔓 Ländervergleich freigeschaltet!';
-                badge.style.marginTop = '20px';
-                badge.style.animation = 'slideIn 0.5s ease-out';
+                const badge = createUnlockBadge('🔓 Ländervergleich freigeschaltet!');
                 
                 const timelineSection = document.getElementById('timeline-section-main');
                 if (timelineSection) {
@@ -1471,7 +1546,10 @@
         }
 
         // === LÄNDERVERGLEICH ===
-        let answeredComparisons = new Set();
+        // Da es sich um Auswahlfragen handelt, wird answeredComparisons beim Laden NICHT angewendet, 
+        // da der Zustand der Karten beim Neuladen verloren geht und neu geklickt werden müsste,
+        // was die Benutzererfahrung verschlechtert. Wir verlassen uns hier auf den `activitiesCompleted.comparison` Flag.
+        let answeredComparisons = new Set(); 
         const totalComparisons = 3;
 
         document.querySelectorAll('.country-card').forEach(card => {
@@ -1484,7 +1562,8 @@
                 if (!question) return;
                 
                 const questionNum = question.dataset.question;
-                if (answeredComparisons.has(questionNum)) return;
+                // Deaktiviert das Klicken, wenn die Aktivität abgeschlossen ist
+                if (activitiesCompleted.comparison || answeredComparisons.has(questionNum)) return;
                 
                 const correctAnswer = question.dataset.correct;
                 const userAnswer = this.dataset.answer;
@@ -1558,11 +1637,7 @@
                     window.scrollTo({top: y, behavior: 'smooth'});
                 }, 100);
                 
-                const badge = document.createElement('div');
-                badge.className = 'unlock-badge';
-                badge.textContent = '🔓 Faktencheck freigeschaltet!';
-                badge.style.marginTop = '20px';
-                badge.style.animation = 'slideIn 0.5s ease-out';
+                const badge = createUnlockBadge('🔓 Faktencheck freigeschaltet!');
                 
                 const comparisonSection = document.getElementById('comparison-section');
                 if (comparisonSection) {
@@ -1572,7 +1647,9 @@
         }
 
         // === FAKTENCHECK ===
-        let answeredFacts = new Set();
+        // Hier lassen wir answeredFacts beim Laden NICHT persistieren, 
+        // da die Logik nur prüft, ob die gesamte Aktivität abgeschlossen ist.
+        let answeredFacts = new Set(); 
         const totalFacts = 4;
 
         document.querySelectorAll('.fact-card').forEach(card => {
@@ -1582,7 +1659,7 @@
 
             buttons.forEach(button => {
                 button.addEventListener('click', function() {
-                    if (answeredFacts.has(factNum)) return;
+                    if (activitiesCompleted.facts || answeredFacts.has(factNum)) return;
 
                     const userAnswer = this.dataset.answer === 'true';
                     const feedback = card.querySelector('.fact-feedback');
@@ -1656,17 +1733,22 @@
                     window.scrollTo({top: y, behavior: 'smooth'});
                 }, 100);
                 
-                const badge = document.createElement('div');
-                badge.className = 'unlock-badge';
-                badge.textContent = '🔓 Quiz freigeschaltet!';
-                badge.style.marginTop = '20px';
-                badge.style.animation = 'slideIn 0.5s ease-out';
+                const badge = createUnlockBadge('🔓 Quiz freigeschaltet!');
                 
                 const factsSection = document.getElementById('facts-section');
                 if (factsSection) {
                     factsSection.appendChild(badge);
                 }
             }
+        }
+        
+        function createUnlockBadge(text) {
+             const badge = document.createElement('div');
+             badge.className = 'unlock-badge';
+             badge.textContent = text;
+             badge.style.marginTop = '20px';
+             badge.style.animation = 'slideIn 0.5s ease-out';
+             return badge;
         }
 
         // === QUIZ ===
@@ -1784,9 +1866,10 @@
             // Check button initial state
             const checkBtn = document.getElementById('check-timeline');
             if (checkBtn) {
-                checkBtn.disabled = true;
-                checkBtn.style.opacity = '0.5';
-                checkBtn.style.background = '#ccc';
+                // Setzt den Button auf disabled, WENN noch nichts platziert wurde
+                checkBtn.disabled = Object.keys(placedCountries).length !== 6;
+                checkBtn.style.opacity = checkBtn.disabled ? '0.5' : '1';
+                checkBtn.style.background = checkBtn.disabled ? '#ccc' : '#5eb9b4';
             }
             
             // Lade den Fortschritt erst, wenn das gesamte DOM geladen ist.
