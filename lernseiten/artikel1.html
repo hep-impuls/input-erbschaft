@@ -849,7 +849,7 @@
     <script src="../firebase-config.js"></script>
 
     <script>
-      // === FIREBASE TRACKING FUNKTIONEN ===
+// === FIREBASE TRACKING FUNKTIONEN ===
 
 // Session ID aus localStorage holen oder neu erstellen
 function getSessionId() {
@@ -875,9 +875,11 @@ function trackPageVisit(pageName) {
         userCode: userCode,
         timestamp: Date.now(),
         page: pageName
+    }).then(() => {
+        console.log('✓ Page visit tracked:', pageName, 'User:', userCode);
+    }).catch(err => {
+        console.error('✗ Page visit tracking failed:', err);
     });
-    
-    console.log('Page visit tracked:', pageName);
 }
 
 // Quiz-Antwort tracken
@@ -891,9 +893,13 @@ function trackQuizAnswer(articleId, questionNum, isCorrect) {
         correct: isCorrect
     };
     
-    firebase.database().ref('quizAnswers/' + articleId + '/' + sessionId + '/q' + questionNum).set(answerData);
-    
-    console.log('Quiz answer tracked:', articleId, questionNum, isCorrect);
+    firebase.database().ref('quizAnswers/' + articleId + '/' + sessionId + '/q' + questionNum).set(answerData)
+        .then(() => {
+            console.log('✓ Quiz answer tracked:', articleId, questionNum, isCorrect);
+        })
+        .catch(err => {
+            console.error('✗ Quiz answer tracking failed:', err);
+        });
 }
 
 // Artikel als abgeschlossen markieren
@@ -909,15 +915,20 @@ function markArticleComplete(articleId) {
     };
     
     // In completions speichern
-    firebase.database().ref('completions/' + sessionId + '/' + articleId).set(completionData);
+    firebase.database().ref('completions/' + sessionId + '/' + articleId).set(completionData)
+        .then(() => {
+            console.log('✓ Article completion tracked (completions)');
+        });
     
     // In articleProgress speichern
     firebase.database().ref('articleProgress/' + sessionId + '/' + articleId).set({
         completed: true,
         timestamp: Date.now()
+    }).then(() => {
+        console.log('✓ Article completion tracked (articleProgress)');
+    }).catch(err => {
+        console.error('✗ Article completion tracking failed:', err);
     });
-    
-    console.log('Article completion tracked:', articleId);
 }
 
 // Aktivitäts-Fortschritt speichern
@@ -929,9 +940,11 @@ function trackActivityProgress(articleId, activityType, completed) {
         userCode: userCode,
         completed: completed,
         timestamp: Date.now()
+    }).then(() => {
+        console.log('✓ Activity progress tracked:', articleId, activityType, completed);
+    }).catch(err => {
+        console.error('✗ Activity progress tracking failed:', err);
     });
-    
-    console.log('Activity progress tracked:', articleId, activityType, completed);
 }
 
 // === KARTEN-AKTIVITÄT ===
@@ -1143,6 +1156,9 @@ function getCorrectFeedback(questionNum) {
 
 // Beim Laden der Seite: Seitenbesuch tracken
 window.addEventListener('load', () => {
+    console.log('=== ARTIKEL 1 LOADED ===');
+    console.log('User:', getUserCode());
+    console.log('Session:', getSessionId());
     trackPageVisit('artikel1');
 });
     </script>
