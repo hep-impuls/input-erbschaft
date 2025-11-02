@@ -1300,6 +1300,222 @@ function markArticleComplete(pageName) {
     });
 }
 
+// === LOCALSTORAGE FUNKTIONEN ===
+
+function getStorageKey(key) {
+    const userCode = getUserCode();
+    return `artikel4_${userCode}_${key}`;
+}
+
+function saveProgress() {
+    // Slides
+    localStorage.setItem(getStorageKey('currentSlide'), currentSlide);
+    
+    // Ranking
+    localStorage.setItem(getStorageKey('placedCantons'), JSON.stringify(placedCantons));
+    localStorage.setItem(getStorageKey('activitiesCompleted'), JSON.stringify(activitiesCompleted));
+    
+    // Matching
+    localStorage.setItem(getStorageKey('answeredMatching'), JSON.stringify([...answeredMatching]));
+    
+    // Facts
+    localStorage.setItem(getStorageKey('answeredFacts'), JSON.stringify([...answeredFacts]));
+    
+    // Quiz
+    localStorage.setItem(getStorageKey('currentQuestion'), currentQuestion);
+    localStorage.setItem(getStorageKey('answeredQuestions'), JSON.stringify([...answeredQuestions]));
+    localStorage.setItem(getStorageKey('correctQuizAnswers'), correctQuizAnswers);
+    
+    // Section States
+    localStorage.setItem(getStorageKey('rankingSectionUnlocked'), document.getElementById('ranking-section').classList.contains('unlocked'));
+    localStorage.setItem(getStorageKey('matchingSectionUnlocked'), document.getElementById('matching-section').classList.contains('unlocked'));
+    localStorage.setItem(getStorageKey('factsSectionUnlocked'), document.getElementById('facts-section').classList.contains('unlocked'));
+    localStorage.setItem(getStorageKey('quizUnlocked'), !document.getElementById('quiz-section').classList.contains('locked'));
+    
+    console.log('✓ Progress saved to localStorage');
+}
+
+function loadProgress() {
+    const savedSlide = localStorage.getItem(getStorageKey('currentSlide'));
+    const savedPlacedCantons = localStorage.getItem(getStorageKey('placedCantons'));
+    const savedActivities = localStorage.getItem(getStorageKey('activitiesCompleted'));
+    const savedMatching = localStorage.getItem(getStorageKey('answeredMatching'));
+    const savedFacts = localStorage.getItem(getStorageKey('answeredFacts'));
+    const savedCurrentQuestion = localStorage.getItem(getStorageKey('currentQuestion'));
+    const savedAnsweredQuestions = localStorage.getItem(getStorageKey('answeredQuestions'));
+    const savedCorrectAnswers = localStorage.getItem(getStorageKey('correctQuizAnswers'));
+    
+    let hasProgress = false;
+    
+    if (savedSlide) {
+        currentSlide = parseInt(savedSlide);
+        hasProgress = true;
+    }
+    
+    if (savedPlacedCantons) {
+        Object.assign(placedCantons, JSON.parse(savedPlacedCantons));
+        hasProgress = true;
+    }
+    
+    if (savedActivities) {
+        Object.assign(activitiesCompleted, JSON.parse(savedActivities));
+        hasProgress = true;
+    }
+    
+    if (savedMatching) {
+        answeredMatching = new Set(JSON.parse(savedMatching));
+        hasProgress = true;
+    }
+    
+    if (savedFacts) {
+        answeredFacts = new Set(JSON.parse(savedFacts));
+        hasProgress = true;
+    }
+    
+    if (savedCurrentQuestion) {
+        currentQuestion = parseInt(savedCurrentQuestion);
+        hasProgress = true;
+    }
+    
+    if (savedAnsweredQuestions) {
+        answeredQuestions = new Set(JSON.parse(savedAnsweredQuestions));
+        hasProgress = true;
+    }
+    
+    if (savedCorrectAnswers) {
+        correctQuizAnswers = parseInt(savedCorrectAnswers);
+        hasProgress = true;
+    }
+    
+    return hasProgress;
+}
+
+function restoreUIState() {
+    // Restore Slides
+    document.querySelectorAll('.slide').forEach((slide, index) => {
+        slide.classList.toggle('active', index === currentSlide - 1);
+    });
+    updateSlideProgress();
+    document.getElementById('prev-slide').disabled = (currentSlide === 1);
+    document.getElementById('next-slide').disabled = (currentSlide === totalSlides);
+    
+    // Restore Section Unlocks
+    if (localStorage.getItem(getStorageKey('rankingSectionUnlocked')) === 'true') {
+        document.getElementById('ranking-section').classList.add('unlocked');
+    }
+    
+    if (localStorage.getItem(getStorageKey('matchingSectionUnlocked')) === 'true') {
+        document.getElementById('matching-section').classList.add('unlocked');
+    }
+    
+    if (localStorage.getItem(getStorageKey('factsSectionUnlocked')) === 'true') {
+        document.getElementById('facts-section').classList.add('unlocked');
+    }
+    
+    if (localStorage.getItem(getStorageKey('quizUnlocked')) === 'true') {
+        document.getElementById('quiz-section').classList.remove('locked');
+    }
+    
+    // Restore Ranking
+    if (Object.keys(placedCantons).length > 0) {
+        Object.keys(placedCantons).forEach(canton => {
+            const rank = placedCantons[canton];
+            const chip = document.querySelector(`.canton-chip[data-canton="${canton}"]`);
+            const dropZone = document.querySelector(`.drop-zone[data-rank="${rank}"]`);
+            
+            if (chip && dropZone) {
+                chip.classList.add('placed');
+                chip.draggable = false;
+                
+                const content = dropZone.querySelector('.drop-zone-content');
+                const clone = chip.cloneNode(true);
+                clone.draggable = false;
+                clone.style.cursor = 'default';
+                content.appendChild(clone);
+            }
+        });
+        updateRankingProgress();
+        
+        if (Object.keys(placedCantons).length === 6 && !activitiesCompleted.ranking) {
+            document.getElementById('check-ranking').disabled = false;
+        }
+    }
+    
+    // Restore Matching
+    answeredMatching.forEach(questionNum => {
+        const cards = document.querySelectorAll(`.matching-card[data-question="${questionNum}"]`);
+        cards.forEach(card => {
+            card.style.pointerEvents = 'none';
+            if (card.dataset.answer === 'correct') {
+                card.classList.add('correct');
+            }
+        });
+        
+        const feedback = document.getElementById(`matching-feedback-${questionNum}`);
+        if (feedback) {
+            feedback.className = 'activity-feedback correct show';
+            feedback.textContent = '✓ Richtig! ' + getMatchingFeedback(questionNum);
+        }
+    });
+    updateMatchingProgress();
+    
+    // Restore Facts
+    answeredFacts.forEach(factNum => {
+        const card = document.querySelector(`.fact-card[data-fact="${factNum}"]`);
+        if (card) {
+            const isCorrect = card.dataset.correct === 'true';
+            const buttons = card.querySelectorAll('.fact-btn');
+            const feedback = card.querySelector('.fact-feedback');
+            
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                const btnIsTrue = btn.dataset.answer === 'true';
+                if (btnIsTrue === isCorrect) {
+                    btn.classList.add('correct');
+                }
+            });
+            
+            feedback.className = 'fact-feedback correct show';
+            feedback.textContent = '✓ ' + getFactFeedback(factNum);
+        }
+    });
+    updateFactsProgress();
+    
+    // Restore Quiz
+    if (answeredQuestions.size > 0) {
+        document.querySelectorAll('.question').forEach((q, index) => {
+            const qNum = (index + 1).toString();
+            q.classList.toggle('active', index === currentQuestion - 1);
+            
+            if (answeredQuestions.has(qNum)) {
+                q.classList.add('answered');
+                const options = q.querySelectorAll('.option');
+                options.forEach(opt => {
+                    if (opt.classList.contains('correct') || opt.classList.contains('incorrect')) {
+                        // Already has state
+                    } else if (opt.dataset.answer === 'correct') {
+                        opt.classList.add('correct');
+                    }
+                });
+                
+                const nextButton = q.querySelector('.next-button');
+                if (nextButton) {
+                    nextButton.classList.add('show');
+                }
+                
+                const feedback = q.querySelector('.feedback');
+                if (feedback && !feedback.classList.contains('show')) {
+                    feedback.className = 'feedback correct show';
+                    feedback.textContent = '✓ Beantwortet';
+                }
+            }
+        });
+        updateProgress();
+    }
+    
+    console.log('✓ UI state restored from localStorage');
+}
+
 // === SLIDES ===
 let currentSlide = 1;
 const totalSlides = 8;
@@ -1320,6 +1536,9 @@ function changeSlide(direction) {
     document.getElementById('prev-slide').disabled = (currentSlide === 1);
     document.getElementById('next-slide').disabled = (currentSlide === totalSlides);
     
+    // Progress speichern
+    saveProgress();
+    
     // Nach letzter Slide Aktivitäten freischalten
     if (currentSlide === totalSlides) {
         setTimeout(() => {
@@ -1335,6 +1554,7 @@ function updateSlideProgress() {
 function unlockRanking() {
     document.getElementById('ranking-section').classList.add('unlocked');
     document.getElementById('ranking-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    saveProgress();
 }
 
 // === AKTIVITÄTSSTATUS ===
@@ -1388,6 +1608,7 @@ document.querySelectorAll('.drop-zone').forEach(zone => {
             placedCantons[canton] = rank;
             
             updateRankingProgress();
+            saveProgress();
             
             if (Object.keys(placedCantons).length === 6) {
                 document.getElementById('check-ranking').disabled = false;
@@ -1426,6 +1647,7 @@ function checkRanking() {
         feedback.className = 'activity-feedback correct show';
         feedback.textContent = '✓ Perfekt! Alle Kantone wurden korrekt zugeordnet. Nidwalden weist dank Hergiswil mit Abstand die höchste Superreichen-Dichte auf.';
         activitiesCompleted.ranking = true;
+        saveProgress();
         setTimeout(() => {
             unlockMatching();
         }, 1500);
@@ -1455,11 +1677,13 @@ function resetRanking() {
     updateRankingProgress();
     document.getElementById('check-ranking').disabled = true;
     document.getElementById('ranking-feedback').classList.remove('show');
+    saveProgress();
 }
 
 function unlockMatching() {
     document.getElementById('matching-section').classList.add('unlocked');
     document.getElementById('matching-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    saveProgress();
 }
 
 // === ZAHLEN-MATCHING ===
@@ -1498,9 +1722,11 @@ document.querySelectorAll('.matching-card').forEach(card => {
             
             answeredMatching.add(questionNum);
             updateMatchingProgress();
+            saveProgress();
             
             if (answeredMatching.size === totalMatching && !activitiesCompleted.matching) {
                 activitiesCompleted.matching = true;
+                saveProgress();
                 setTimeout(() => {
                     unlockFacts();
                 }, 1500);
@@ -1532,6 +1758,7 @@ function unlockFacts() {
     badge.textContent = '🔓 Faktencheck freigeschaltet!';
     badge.style.marginTop = '20px';
     document.getElementById('matching-section').appendChild(badge);
+    saveProgress();
 }
 
 // === FAKTENCHECK ===
@@ -1570,9 +1797,11 @@ document.querySelectorAll('.fact-card').forEach(card => {
 
             answeredFacts.add(factNum);
             updateFactsProgress();
+            saveProgress();
 
             if (answeredFacts.size === totalFacts && !activitiesCompleted.facts) {
                 activitiesCompleted.facts = true;
+                saveProgress();
                 setTimeout(() => {
                     unlockQuiz();
                 }, 1500);
@@ -1605,6 +1834,7 @@ function unlockQuiz() {
     badge.textContent = '🔓 Lernkontrollen freigeschaltet!';
     badge.style.marginTop = '20px';
     document.getElementById('facts-section').appendChild(badge);
+    saveProgress();
 }
 
 // === QUIZ ===
@@ -1649,6 +1879,7 @@ document.querySelectorAll('.option').forEach(option => {
             answeredQuestions.add(questionNum);
             nextButton.classList.add('show');
             updateProgress();
+            saveProgress();
         }, 300);
     });
 });
@@ -1662,6 +1893,7 @@ function showNextQuestion() {
     if (currentQuestion <= totalQuestions) {
         const nextQ = document.querySelector(`.question[data-question="${currentQuestion}"]`);
         nextQ.classList.add('active');
+        saveProgress();
     } else {
         // Quiz abgeschlossen
         document.getElementById('completion-message').classList.add('show');
@@ -1674,6 +1906,8 @@ function showNextQuestion() {
         
         // Tracking: Time Spent
         trackTimeSpent('artikel4');
+        
+        saveProgress();
         
         console.log('📊 Final Stats:');
         console.log('  - Correct Quiz Answers:', correctQuizAnswers, '/', totalQuestions);
@@ -1698,20 +1932,35 @@ function getQuizFeedback(questionNum) {
     return feedbacks[questionNum] || '';
 }
 
-// Beim Laden: Page Visit tracken
+// === INITIALISIERUNG ===
+
 window.addEventListener('load', () => {
     const userCode = getUserCode();
     console.log('=== ARTIKEL 4 GELADEN ===');
     console.log('User:', userCode);
     console.log('Tracking zu: users/' + userCode + '/');
+    
     document.getElementById('check-ranking').disabled = true;
     trackPageVisit('artikel4');
+    
+    const hasProgress = loadProgress();
+    if (hasProgress) {
+        console.log('🔄 Restoring previous progress...');
+        restoreUIState();
+    } else {
+        console.log('🆕 Starting fresh');
+    }
 });
 
 // Beim Verlassen: Time Spent tracken
 window.addEventListener('beforeunload', () => {
     trackTimeSpent('artikel4');
 });
+
+// Auto-Save alle 30 Sekunden
+setInterval(() => {
+    saveProgress();
+}, 30000);
     </script>
 </body>
 </html>
