@@ -849,108 +849,80 @@
     <script src="../firebase-config.js"></script>
 
     <script>
-// === FIREBASE TRACKING FUNKTIONEN ===
+// === FIREBASE TRACKING - KOMPATIBEL MIT DASHBOARD ===
 
-// Session ID aus localStorage holen oder neu erstellen
-function getSessionId() {
-    let sessionId = localStorage.getItem('sessionId');
-    if (!sessionId) {
-        sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('sessionId', sessionId);
-    }
-    return sessionId;
-}
+let pageStartTime = Date.now();
 
 // UserCode aus localStorage holen
 function getUserCode() {
     return localStorage.getItem('userCode') || 'anonymous';
 }
 
-// Seitenbesuch tracken
+// === TRACKING FUNKTIONEN (Dashboard-kompatibel) ===
+
+// Page Visit tracken
 function trackPageVisit(pageName) {
-    const sessionId = getSessionId();
     const userCode = getUserCode();
+    const timestamp = Date.now();
     
-    firebase.database().ref('pageVisits/' + sessionId + '/' + pageName).set({
-        userCode: userCode,
-        timestamp: Date.now(),
+    firebase.database().ref('users/' + userCode + '/visits/' + pageName).set({
+        timestamp: timestamp,
         page: pageName
     }).then(() => {
-        console.log('✓ Page visit tracked:', pageName, 'User:', userCode);
+        console.log('✓ Page visit tracked:', pageName);
     }).catch(err => {
-        console.error('✗ Page visit tracking failed:', err);
+        console.error('✗ Error tracking visit:', err);
     });
 }
 
-// Quiz-Antwort tracken
-function trackQuizAnswer(articleId, questionNum, isCorrect) {
-    const sessionId = getSessionId();
+// Time Spent tracken
+function trackTimeSpent(pageName) {
     const userCode = getUserCode();
+    const timeSpent = Math.floor((Date.now() - pageStartTime) / 1000); // Sekunden
     
-    const answerData = {
-        userCode: userCode,
-        timestamp: Date.now(),
-        correct: isCorrect
-    };
-    
-    firebase.database().ref('quizAnswers/' + articleId + '/' + sessionId + '/q' + questionNum).set(answerData)
-        .then(() => {
-            console.log('✓ Quiz answer tracked:', articleId, questionNum, isCorrect);
-        })
-        .catch(err => {
-            console.error('✗ Quiz answer tracking failed:', err);
-        });
+    firebase.database().ref('users/' + userCode + '/timeSpent/' + pageName).set({
+        seconds: timeSpent,
+        timestamp: Date.now()
+    }).then(() => {
+        console.log('✓ Time spent tracked:', timeSpent, 'seconds');
+    }).catch(err => {
+        console.error('✗ Error tracking time:', err);
+    });
 }
 
-// Artikel als abgeschlossen markieren
-function markArticleComplete(articleId) {
-    const sessionId = getSessionId();
+// Quiz Completion tracken
+function trackQuizCompletion(pageName, correctAnswers, totalQuestions) {
     const userCode = getUserCode();
     
-    const completionData = {
-        userCode: userCode,
-        timestamp: Date.now(),
-        article: articleId,
-        completed: true
-    };
+    firebase.database().ref('users/' + userCode + '/quizzes/' + pageName).set({
+        correctAnswers: correctAnswers,
+        totalQuestions: totalQuestions,
+        timestamp: Date.now()
+    }).then(() => {
+        console.log('✓ Quiz completion tracked:', correctAnswers, '/', totalQuestions);
+    }).catch(err => {
+        console.error('✗ Error tracking quiz:', err);
+    });
+}
+
+// Article Completion markieren
+function markArticleComplete(pageName) {
+    const userCode = getUserCode();
     
-    // In completions speichern
-    firebase.database().ref('completions/' + sessionId + '/' + articleId).set(completionData)
-        .then(() => {
-            console.log('✓ Article completion tracked (completions)');
-        });
-    
-    // In articleProgress speichern
-    firebase.database().ref('articleProgress/' + sessionId + '/' + articleId).set({
+    firebase.database().ref('users/' + userCode + '/completions/' + pageName).set({
         completed: true,
         timestamp: Date.now()
     }).then(() => {
-        console.log('✓ Article completion tracked (articleProgress)');
+        console.log('✓ Article marked as complete:', pageName);
     }).catch(err => {
-        console.error('✗ Article completion tracking failed:', err);
-    });
-}
-
-// Aktivitäts-Fortschritt speichern
-function trackActivityProgress(articleId, activityType, completed) {
-    const sessionId = getSessionId();
-    const userCode = getUserCode();
-    
-    firebase.database().ref('progress/' + sessionId + '/' + articleId + '/' + activityType).set({
-        userCode: userCode,
-        completed: completed,
-        timestamp: Date.now()
-    }).then(() => {
-        console.log('✓ Activity progress tracked:', articleId, activityType, completed);
-    }).catch(err => {
-        console.error('✗ Activity progress tracking failed:', err);
+        console.error('✗ Error marking complete:', err);
     });
 }
 
 // === KARTEN-AKTIVITÄT ===
 let currentCardIndex = 1;
 const totalCards = 5;
-const viewedCards = new Set([1]); // Erste Karte ist bereits sichtbar
+const viewedCards = new Set([1]);
 
 function updateCardDisplay() {
     document.querySelectorAll('.info-card').forEach(card => {
@@ -959,11 +931,9 @@ function updateCardDisplay() {
     document.querySelector(`[data-card="${currentCardIndex}"]`).classList.add('active');
     document.getElementById('current-card').textContent = currentCardIndex;
 
-    // Buttons aktualisieren
     document.getElementById('prev-card').disabled = currentCardIndex === 1;
     document.getElementById('next-card').textContent = currentCardIndex === totalCards ? 'Abschließen ✓' : 'Weiter →';
 
-    // Dots aktualisieren
     const dots = document.querySelectorAll('.dot');
     dots.forEach((dot, index) => {
         dot.classList.remove('active');
@@ -973,13 +943,10 @@ function updateCardDisplay() {
     });
     dots[currentCardIndex - 1].classList.add('active');
 
-    // Karte als angesehen markieren
     viewedCards.add(currentCardIndex);
 
-    // Wenn alle Karten gesehen wurden, zweite Aktivität freischalten
     if (viewedCards.size === totalCards) {
         unlockTrueFalseSection();
-        trackActivityProgress('artikel1', 'cards', true);
     }
 }
 
@@ -995,9 +962,7 @@ document.getElementById('next-card').addEventListener('click', () => {
         currentCardIndex++;
         updateCardDisplay();
     } else if (currentCardIndex === totalCards) {
-        // Alle Karten durchgeklickt
         unlockTrueFalseSection();
-        trackActivityProgress('artikel1', 'cards', true);
         document.getElementById('true-false-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 });
@@ -1008,6 +973,7 @@ function unlockTrueFalseSection() {
 
 // === RICHTIG ODER FALSCH AKTIVITÄT ===
 let answeredStatements = new Set();
+let correctStatementsCount = 0;
 const totalStatements = 4;
 
 document.querySelectorAll('.statement-card').forEach(card => {
@@ -1029,6 +995,7 @@ document.querySelectorAll('.statement-card').forEach(card => {
                 this.classList.add('correct');
                 feedback.className = 'statement-feedback correct show';
                 feedback.textContent = '✓ Richtig! Das entspricht den Aussagen im Artikel.';
+                correctStatementsCount++;
             } else {
                 this.classList.add('incorrect');
                 buttons.forEach(btn => {
@@ -1044,12 +1011,8 @@ document.querySelectorAll('.statement-card').forEach(card => {
             card.classList.add('answered');
             updateTFProgress();
 
-            // Track True/False Answer
-            trackQuizAnswer('artikel1_tf', statementNum, answerCorrect);
-
             if (answeredStatements.size === totalStatements) {
                 unlockQuiz();
-                trackActivityProgress('artikel1', 'trueFalse', true);
             }
         });
     });
@@ -1065,7 +1028,6 @@ function unlockQuiz() {
         quizSection.classList.remove('locked');
         quizSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         
-        // Badge anzeigen
         const badge = document.createElement('div');
         badge.className = 'unlock-badge';
         badge.textContent = '🔓 Quiz freigeschaltet!';
@@ -1077,6 +1039,7 @@ function unlockQuiz() {
 // === QUIZ ===
 let currentQuestion = 1;
 let answeredQuestions = new Set();
+let correctQuizAnswers = 0;
 const totalQuestions = 6;
 
 document.querySelectorAll('.option').forEach(option => {
@@ -1099,6 +1062,7 @@ document.querySelectorAll('.option').forEach(option => {
                 this.classList.add('correct');
                 feedback.className = 'feedback correct show';
                 feedback.textContent = '✓ Richtig! ' + getCorrectFeedback(questionNum);
+                correctQuizAnswers++;
             } else {
                 this.classList.add('incorrect');
                 options.forEach(opt => {
@@ -1114,8 +1078,6 @@ document.querySelectorAll('.option').forEach(option => {
             answeredQuestions.add(questionNum);
             nextButton.classList.add('show');
             updateProgress();
-            
-            trackQuizAnswer('artikel1', questionNum, isCorrect);
         }, 300);
     });
 });
@@ -1130,9 +1092,21 @@ function showNextQuestion() {
         const nextQ = document.querySelector(`[data-question="${currentQuestion}"]`);
         nextQ.classList.add('active');
     } else {
+        // Quiz abgeschlossen
         document.getElementById('completion-message').classList.add('show');
-        trackActivityProgress('artikel1', 'quiz', true);
+        
+        // Tracking: Quiz Completion
+        trackQuizCompletion('artikel1', correctQuizAnswers, totalQuestions);
+        
+        // Tracking: Article Completion
         markArticleComplete('artikel1');
+        
+        // Tracking: Time Spent
+        trackTimeSpent('artikel1');
+        
+        console.log('📊 Final Stats:');
+        console.log('  - Correct Quiz Answers:', correctQuizAnswers, '/', totalQuestions);
+        console.log('  - Correct Statements:', correctStatementsCount, '/', totalStatements);
     }
 }
 
@@ -1154,12 +1128,18 @@ function getCorrectFeedback(questionNum) {
     return feedbacks[questionNum] || '';
 }
 
-// Beim Laden der Seite: Seitenbesuch tracken
+// Beim Laden: Page Visit tracken
 window.addEventListener('load', () => {
-    console.log('=== ARTIKEL 1 LOADED ===');
-    console.log('User:', getUserCode());
-    console.log('Session:', getSessionId());
+    const userCode = getUserCode();
+    console.log('=== ARTIKEL 1 GELADEN ===');
+    console.log('User:', userCode);
+    console.log('Tracking zu: users/' + userCode + '/');
     trackPageVisit('artikel1');
+});
+
+// Beim Verlassen: Time Spent tracken
+window.addEventListener('beforeunload', () => {
+    trackTimeSpent('artikel1');
 });
     </script>
 </body>
