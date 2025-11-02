@@ -513,10 +513,7 @@
             // Anzeige wechseln
             showReturningUser(code);
             
-            // Nach 2 Sekunden weiterleiten
-            setTimeout(() => {
-                continueToLearning();
-            }, 2000);
+            // KEINE automatische Weiterleitung - User entscheidet selbst wann
         }
 
         // Returning User View anzeigen
@@ -598,6 +595,7 @@
                 localStorage.setItem('loginTime', new Date().toISOString());
                 showReturningUser(code);
                 
+                // Kurze Verzögerung vor Weiterleitung auch beim manuellen Login
                 setTimeout(() => {
                     continueToLearning();
                 }, 1500);
