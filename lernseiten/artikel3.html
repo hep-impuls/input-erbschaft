@@ -700,7 +700,7 @@
             </div>
 
             <!-- === SCHRITT 1: TIMELINE-SPIEL === -->
-            <div class="interactive-section">
+            <div class="interactive-section" id="timeline-section-main">
                 <h2>📅 Schritt 1: Zeitstrahl der Abschaffungen</h2>
                 <p style="text-align: center; margin-bottom: 20px;">Ordnen Sie die Länder dem Jahr zu, in dem sie die Erbschaftssteuer abschafften. Ziehen Sie die Ländernamen auf die passenden Jahreszahlen.</p>
                 <div class="activity-progress" id="timeline-progress">0 von 6 Ländern zugeordnet</div>
@@ -715,7 +715,7 @@
                         <div class="country-chip" draggable="true" data-country="norwegen" data-year="2013">🇳🇴 Norwegen</div>
                     </div>
 
-                    <div class="timeline-drops">
+                    <div class="timeline-drops" id="timeline-drops-container">
                         <div class="drop-zone" data-year="1971">
                             <div class="drop-zone-year">1971</div>
                             <div class="drop-zone-content"></div>
@@ -1049,8 +1049,10 @@
                     userId = userCredential.user.uid;
                     firebaseReady = true;
                     console.log(`✅ Firebase Ready. User ID: ${userId}, App ID: ${appId}`);
-                    // Track page visit AFTER auth is ready
+                    // 1. Track page visit
                     trackPageVisit(PAGE_NAME);
+                    // 2. Load and apply progress
+                    loadProgressAndInitializeUI(); // Hinzugefügt: Laden des Fortschritts nach Auth
                 }).catch(err => {
                     console.error("❌ Firebase Auth Error:", err);
                     userId = 'anonymous-' + crypto.randomUUID(); // Fallback
@@ -1189,26 +1191,81 @@
                 }
             }
         }
+        
+        /**
+         * Lädt den gespeicherten Fortschritt aus Firestore und wendet ihn auf die UI an.
+         */
+        export async function loadProgressAndInitializeUI() {
+            if (!firebaseReady) {
+                // Kann hier nicht geladen werden, weil Firebase noch nicht bereit ist.
+                // Es wird direkt nach der Authentifizierung aufgerufen (siehe AuthPromise).
+                return;
+            }
+            const docRef = getUserDocRef(PAGE_NAME);
+            if (!docRef) return;
+
+            try {
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists() && docSnap.data().activitiesProgress) {
+                    const loadedProgress = docSnap.data().activitiesProgress;
+                    console.log('✓ Progress geladen:', loadedProgress);
+                    
+                    // Aufruf der globalen Funktion in der Hauptlogik
+                    if (window.applyLoadedProgress) {
+                        window.applyLoadedProgress(loadedProgress);
+                    }
+                }
+            } catch (err) {
+                console.error('✗ Fehler beim Laden des Fortschritts:', err);
+            }
+        }
 
         // Exponiere die Funktionen global, damit sie im restlichen Script aufgerufen werden können
         window.trackPageVisit = trackPageVisit;
         window.trackTimeSpent = trackTimeSpent;
         window.trackQuizCompletion = trackQuizCompletion;
-        window.saveProgressState = saveProgressState; // NEUE Funktion
+        window.saveProgressState = saveProgressState; 
+        window.loadProgressAndInitializeUI = loadProgressAndInitializeUI; 
     </script>
 
     <!-- HIER BEGINNT DER HAUPT-JAVASCRIPT-BLOCK OHNE MODULE IMPORTS -->
     <script>
         // === QUIZ / SPIELLOGIK (FUNKTIONIERT WIE VOM BENUTZER ERSTELLT) ===
 
-        // WICHTIG: Die Firebase-Funktionen werden über window.FunctionName zur Verfügung gestellt (siehe Modul-Script oben)
-
-        const PAGE_NAME = 'artikel3'; // Redefiniert, da dies der nicht-Modul-Teil ist.
+        const PAGE_NAME = 'artikel3'; 
         
         let activitiesCompleted = {
             timeline: false,
             comparison: false,
             facts: false
+        };
+
+        // === ZUSÄTZLICHE FUNKTION ZUM ANWENDEN DES GELADENEN FORTSCHRITTS ===
+        window.applyLoadedProgress = function(progress) {
+            // 1. Internen Zustand aktualisieren
+            activitiesCompleted = progress;
+            console.log('UI-Zustand angewendet:', activitiesCompleted);
+            
+            // 2. UI-Elemente freischalten basierend auf dem Zustand
+            if (progress.timeline) {
+                // Timeline ist abgeschlossen -> Comparison freischalten & Timeline sperren
+                unlockComparison(true);
+                // Timeline Sektion visuell als erledigt markieren/sperren
+                const timelineSection = document.getElementById('timeline-section-main');
+                if(timelineSection) {
+                    // Verhindert Interaktion mit der abgeschlossenen Timeline
+                    timelineSection.style.opacity = '0.7'; 
+                    timelineSection.style.pointerEvents = 'none';
+                }
+            }
+            if (progress.comparison) {
+                // Comparison ist abgeschlossen -> Facts freischalten
+                unlockFacts(true);
+            }
+            if (progress.facts) {
+                // Facts ist abgeschlossen -> Quiz freischalten
+                unlockQuiz(true);
+            }
         };
 
         // === TIMELINE DRAG & DROP ===
@@ -1218,15 +1275,13 @@
         function setupDragAndDrop() {
             // Setup draggable chips
             document.querySelectorAll('.country-chip').forEach(chip => {
-                // Ensure chips are draggable and resettable
                 chip.draggable = true;
                 chip.style.cursor = 'move';
                 chip.style.opacity = '1';
                 chip.classList.remove('placed', 'dragging');
 
-
                 chip.addEventListener('dragstart', function(e) {
-                    if (this.classList.contains('placed')) {
+                    if (this.classList.contains('placed') || !activitiesCompleted.timeline && document.getElementById('timeline-section-main').style.pointerEvents === 'none') {
                         e.preventDefault();
                         return;
                     }
@@ -1241,9 +1296,8 @@
                 });
             });
 
-            // Setup drop zones
+            // Setup drop zones (Unverändert, Drag/Drop Logic)
             document.querySelectorAll('.drop-zone').forEach(zone => {
-                // Cleanup content and classes
                 zone.classList.remove('drag-over', 'correct', 'incorrect');
                 zone.querySelector('.drop-zone-content').innerHTML = '';
 
@@ -1253,7 +1307,6 @@
                     e.dataTransfer.dropEffect = 'move';
                     
                     const content = this.querySelector('.drop-zone-content');
-                    // Only allow drag-over state if zone is empty
                     if (!content.querySelector('.country-chip') && draggedElement) {
                         this.classList.add('drag-over');
                     } else {
@@ -1274,25 +1327,19 @@
                     const content = this.querySelector('.drop-zone-content');
                     if (content.querySelector('.country-chip')) return;
                     
-                    // Remove the dragged chip from its original pool/parent (if needed, here it moves from pool)
-                    // The original chip stays in the pool but is visually marked as placed.
-
-                    // Create a visual clone for the drop zone
                     const clone = draggedElement.cloneNode(true);
                     clone.draggable = false;
                     clone.style.cursor = 'default';
                     clone.classList.remove('dragging');
                     content.appendChild(clone);
                     
-                    // Mark original as placed and make it non-draggable in the pool
                     draggedElement.classList.add('placed');
                     draggedElement.draggable = false;
-                    draggedElement.style.opacity = '0.3'; // Visual cue in pool
+                    draggedElement.style.opacity = '0.3'; 
                     
                     const country = draggedElement.dataset.country;
                     const year = this.dataset.year;
 
-                    // Store placement info
                     placedCountries.set(country, {
                         year: year,
                         zone: this,
@@ -1302,7 +1349,6 @@
                     
                     updateTimelineProgress();
                     
-                    // Enable check button when all 6 are placed
                     const checkBtn = document.getElementById('check-timeline');
                     if (placedCountries.size === 6) {
                         checkBtn.disabled = false;
@@ -1350,33 +1396,34 @@
                 feedback.className = 'timeline-feedback correct show';
                 feedback.innerHTML = '✓ Perfekt! Alle Länder wurden korrekt zugeordnet. Diese Länder haben über einen Zeitraum von 42 Jahren die Erbschaftssteuer abgeschafft.';
                 activitiesCompleted.timeline = true;
-                checkBtn.style.display = 'none';
                 
+                // Setzt die Timeline Sektion auf gelöst
+                document.getElementById('timeline-section-main').style.opacity = '0.7'; 
+                document.getElementById('timeline-section-main').style.pointerEvents = 'none';
+
                 // TRACKING: Speichere den gesamten Fortschrittszustand (FIREBASE)
                 if (window.saveProgressState) window.saveProgressState(PAGE_NAME, activitiesCompleted);
                 
                 setTimeout(() => {
                     unlockComparison();
+                    checkBtn.style.display = 'none';
                 }, 1500);
             } else {
                 feedback.className = 'timeline-feedback incorrect show';
                 feedback.innerHTML = '✗ Nicht ganz. Einige Zuordnungen sind noch nicht korrekt. Versuchen Sie es erneut!<br><small style="margin-top: 10px; display: block;">Tipp: Ordnen Sie jedes Land dem Jahr zu, in dem es die Erbschaftssteuer abschaffte.</small>';
                 
                 setTimeout(() => {
-                    // Reset only if there was an incorrect answer to allow user to try again
                     resetTimeline();
                 }, 3000);
             }
         }
 
         function resetTimeline() {
-            // Clear all visual feedback
             document.querySelectorAll('.drop-zone').forEach(zone => {
                 zone.classList.remove('correct', 'incorrect');
                 zone.querySelector('.drop-zone-content').innerHTML = '';
             });
             
-            // Reset all country chips (visual)
             document.querySelectorAll('.country-chip').forEach(chip => {
                 chip.classList.remove('placed');
                 chip.draggable = true;
@@ -1384,10 +1431,8 @@
                 chip.style.opacity = '1';
             });
             
-            // Clear data
             placedCountries.clear();
             
-            // Reset UI
             updateTimelineProgress();
             const checkBtn = document.getElementById('check-timeline');
             checkBtn.disabled = true;
@@ -1396,29 +1441,32 @@
             document.getElementById('timeline-feedback').classList.remove('show');
         }
 
-        function unlockComparison() {
+        // isInitialLoad Flag hinzugefügt
+        function unlockComparison(isInitialLoad = false) {
             const comparisonSection = document.getElementById('comparison-section');
             if (!comparisonSection) return;
             
             comparisonSection.classList.add('unlocked');
             
-            // Scroll with offset
-            setTimeout(() => {
-                const yOffset = -100;
-                const y = comparisonSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                window.scrollTo({top: y, behavior: 'smooth'});
-            }, 100);
-            
-            // Add visual badge
-            const badge = document.createElement('div');
-            badge.className = 'unlock-badge';
-            badge.textContent = '🔓 Ländervergleich freigeschaltet!';
-            badge.style.marginTop = '20px';
-            badge.style.animation = 'slideIn 0.5s ease-out';
-            
-            const timelineSection = document.querySelector('.interactive-section');
-            if (timelineSection) {
-                timelineSection.appendChild(badge);
+            if (!isInitialLoad) {
+                // Scroll only, if it's not the initial load
+                setTimeout(() => {
+                    const yOffset = -100;
+                    const y = comparisonSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                    window.scrollTo({top: y, behavior: 'smooth'});
+                }, 100);
+                
+                // Add visual badge only on completion
+                const badge = document.createElement('div');
+                badge.className = 'unlock-badge';
+                badge.textContent = '🔓 Ländervergleich freigeschaltet!';
+                badge.style.marginTop = '20px';
+                badge.style.animation = 'slideIn 0.5s ease-out';
+                
+                const timelineSection = document.getElementById('timeline-section-main');
+                if (timelineSection) {
+                    timelineSection.appendChild(badge);
+                }
             }
         }
 
@@ -1432,8 +1480,6 @@
                 if (!grid) return;
                 
                 const questionRef = grid.dataset.questionRef;
-                
-                // Find the question element
                 const question = document.querySelector(`.comparison-question[data-question="${questionRef}"]`);
                 if (!question) return;
                 
@@ -1474,6 +1520,10 @@
                         
                         setTimeout(() => {
                             unlockFacts();
+                            // Sperre die gesamte Vergleichssektion nach Abschluss, um Doppel-Klicks zu verhindern
+                            const comparisonSection = document.getElementById('comparison-section');
+                            comparisonSection.style.opacity = '0.7'; 
+                            comparisonSection.style.pointerEvents = 'none';
                         }, 1500);
                     }
                 }, 500);
@@ -1493,28 +1543,31 @@
             return feedbacks[questionNum] || '';
         }
 
-        function unlockFacts() {
+        // isInitialLoad Flag hinzugefügt
+        function unlockFacts(isInitialLoad = false) {
             const factsSection = document.getElementById('facts-section');
             if (!factsSection) return;
             
             factsSection.classList.add('unlocked');
             
-            // Scroll with offset
-            setTimeout(() => {
-                const yOffset = -100;
-                const y = factsSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                window.scrollTo({top: y, behavior: 'smooth'});
-            }, 100);
-            
-            const badge = document.createElement('div');
-            badge.className = 'unlock-badge';
-            badge.textContent = '🔓 Faktencheck freigeschaltet!';
-            badge.style.marginTop = '20px';
-            badge.style.animation = 'slideIn 0.5s ease-out';
-            
-            const comparisonSection = document.getElementById('comparison-section');
-            if (comparisonSection) {
-                comparisonSection.appendChild(badge);
+            if (!isInitialLoad) {
+                // Scroll only, if it's not the initial load
+                setTimeout(() => {
+                    const yOffset = -100;
+                    const y = factsSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                    window.scrollTo({top: y, behavior: 'smooth'});
+                }, 100);
+                
+                const badge = document.createElement('div');
+                badge.className = 'unlock-badge';
+                badge.textContent = '🔓 Faktencheck freigeschaltet!';
+                badge.style.marginTop = '20px';
+                badge.style.animation = 'slideIn 0.5s ease-out';
+                
+                const comparisonSection = document.getElementById('comparison-section');
+                if (comparisonSection) {
+                    comparisonSection.appendChild(badge);
+                }
             }
         }
 
@@ -1557,6 +1610,11 @@
 
                     if (answeredFacts.size === totalFacts && !activitiesCompleted.facts) {
                         activitiesCompleted.facts = true;
+
+                        // Sperre die gesamte Faktencheck-Sektion
+                        const factsSection = document.getElementById('facts-section');
+                        factsSection.style.opacity = '0.7'; 
+                        factsSection.style.pointerEvents = 'none';
                         
                         // TRACKING: Speichere den gesamten Fortschrittszustand (FIREBASE)
                         if (window.saveProgressState) window.saveProgressState(PAGE_NAME, activitiesCompleted);
@@ -1583,28 +1641,31 @@
             return feedbacks[factNum] || '';
         }
 
-        function unlockQuiz() {
+        // isInitialLoad Flag hinzugefügt
+        function unlockQuiz(isInitialLoad = false) {
             const quizSection = document.getElementById('quiz-section');
             if (!quizSection) return;
             
             quizSection.classList.remove('locked');
             
-            // Scroll with offset
-            setTimeout(() => {
-                const yOffset = -100;
-                const y = quizSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                window.scrollTo({top: y, behavior: 'smooth'});
-            }, 100);
-            
-            const badge = document.createElement('div');
-            badge.className = 'unlock-badge';
-            badge.textContent = '🔓 Quiz freigeschaltet!';
-            badge.style.marginTop = '20px';
-            badge.style.animation = 'slideIn 0.5s ease-out';
-            
-            const factsSection = document.getElementById('facts-section');
-            if (factsSection) {
-                factsSection.appendChild(badge);
+            if (!isInitialLoad) {
+                // Scroll only, if it's not the initial load
+                setTimeout(() => {
+                    const yOffset = -100;
+                    const y = quizSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                    window.scrollTo({top: y, behavior: 'smooth'});
+                }, 100);
+                
+                const badge = document.createElement('div');
+                badge.className = 'unlock-badge';
+                badge.textContent = '🔓 Quiz freigeschaltet!';
+                badge.style.marginTop = '20px';
+                badge.style.animation = 'slideIn 0.5s ease-out';
+                
+                const factsSection = document.getElementById('facts-section');
+                if (factsSection) {
+                    factsSection.appendChild(badge);
+                }
             }
         }
 
@@ -1727,6 +1788,9 @@
                 checkBtn.style.opacity = '0.5';
                 checkBtn.style.background = '#ccc';
             }
+            
+            // Lade den Fortschritt erst, wenn das gesamte DOM geladen ist.
+            // Der Aufruf zur eigentlichen Ladefunktion findet im Module-Script nach Auth statt.
         });
 
         // === BEIM VERLASSEN ===
