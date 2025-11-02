@@ -977,7 +977,7 @@
             </div>
 
             <div class="navigation">
-                <a href="artikel2.html" class="nav-button secondary">← Vorheriger Artikel</a>
+                <a href="../index.html" class="nav-button secondary">← Zurück zur Übersicht</a>
                 <a href="artikel4.html" class="nav-button">Nächster Artikel →</a>
             </div>
         </div>
@@ -988,357 +988,451 @@
     <script src="../firebase-config.js"></script>
 
     <script>
-        // === AKTIVITÄTSSTATUS ===
-        let activitiesCompleted = {
-            timeline: false,
-            comparison: false,
-            facts: false
-        };
+// === FIREBASE TRACKING - KOMPATIBEL MIT DASHBOARD ===
 
-        // === TIMELINE DRAG & DROP ===
-        let draggedElement = null;
-        const placedCountries = {};
+let pageStartTime = Date.now();
 
-        document.querySelectorAll('.country-chip').forEach(chip => {
-            chip.addEventListener('dragstart', function(e) {
-                draggedElement = this;
-                this.classList.add('dragging');
-            });
+// UserCode aus localStorage holen
+function getUserCode() {
+    return localStorage.getItem('userCode') || 'anonymous';
+}
 
-            chip.addEventListener('dragend', function() {
-                this.classList.remove('dragging');
-            });
-        });
+// === TRACKING FUNKTIONEN (Dashboard-kompatibel) ===
 
-        document.querySelectorAll('.drop-zone').forEach(zone => {
-            zone.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                this.classList.add('drag-over');
-            });
+// Page Visit tracken
+function trackPageVisit(pageName) {
+    const userCode = getUserCode();
+    const timestamp = Date.now();
+    
+    firebase.database().ref('users/' + userCode + '/visits/' + pageName).set({
+        timestamp: timestamp,
+        page: pageName
+    }).then(() => {
+        console.log('✓ Page visit tracked:', pageName);
+    }).catch(err => {
+        console.error('✗ Error tracking visit:', err);
+    });
+}
 
-            zone.addEventListener('dragleave', function() {
-                this.classList.remove('drag-over');
-            });
+// Time Spent tracken
+function trackTimeSpent(pageName) {
+    const userCode = getUserCode();
+    const timeSpent = Math.floor((Date.now() - pageStartTime) / 1000); // Sekunden
+    
+    firebase.database().ref('users/' + userCode + '/timeSpent/' + pageName).set({
+        seconds: timeSpent,
+        timestamp: Date.now()
+    }).then(() => {
+        console.log('✓ Time spent tracked:', timeSpent, 'seconds');
+    }).catch(err => {
+        console.error('✗ Error tracking time:', err);
+    });
+}
 
-            zone.addEventListener('drop', function(e) {
-                e.preventDefault();
-                this.classList.remove('drag-over');
-                
-                if (draggedElement) {
-                    const content = this.querySelector('.drop-zone-content');
-                    const clone = draggedElement.cloneNode(true);
-                    clone.draggable = false;
-                    clone.style.cursor = 'default';
-                    content.appendChild(clone);
-                    
-                    draggedElement.classList.add('placed');
-                    draggedElement.draggable = false;
-                    
-                    const country = draggedElement.dataset.country;
-                    const year = this.dataset.year;
-                    placedCountries[country] = year;
-                    
-                    updateTimelineProgress();
-                    
-                    if (Object.keys(placedCountries).length === 6) {
-                        document.getElementById('check-timeline').disabled = false;
-                    }
-                }
-            });
-        });
+// Quiz Completion tracken
+function trackQuizCompletion(pageName, correctAnswers, totalQuestions) {
+    const userCode = getUserCode();
+    
+    firebase.database().ref('users/' + userCode + '/quizzes/' + pageName).set({
+        correctAnswers: correctAnswers,
+        totalQuestions: totalQuestions,
+        timestamp: Date.now()
+    }).then(() => {
+        console.log('✓ Quiz completion tracked:', correctAnswers, '/', totalQuestions);
+    }).catch(err => {
+        console.error('✗ Error tracking quiz:', err);
+    });
+}
 
-        function updateTimelineProgress() {
-            const count = Object.keys(placedCountries).length;
-            document.getElementById('timeline-progress').textContent = `${count} von 6 Ländern zugeordnet`;
-        }
+// Article Completion markieren
+function markArticleComplete(pageName) {
+    const userCode = getUserCode();
+    
+    firebase.database().ref('users/' + userCode + '/completions/' + pageName).set({
+        completed: true,
+        timestamp: Date.now()
+    }).then(() => {
+        console.log('✓ Article marked as complete:', pageName);
+    }).catch(err => {
+        console.error('✗ Error marking complete:', err);
+    });
+}
 
-        function checkTimeline() {
-            let allCorrect = true;
-            const dropZones = document.querySelectorAll('.drop-zone');
+// === AKTIVITÄTSSTATUS ===
+let activitiesCompleted = {
+    timeline: false,
+    comparison: false,
+    facts: false
+};
+
+// === TIMELINE DRAG & DROP ===
+let draggedElement = null;
+const placedCountries = {};
+
+document.querySelectorAll('.country-chip').forEach(chip => {
+    chip.addEventListener('dragstart', function(e) {
+        draggedElement = this;
+        this.classList.add('dragging');
+    });
+
+    chip.addEventListener('dragend', function() {
+        this.classList.remove('dragging');
+    });
+});
+
+document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('drag-over');
+    });
+
+    zone.addEventListener('dragleave', function() {
+        this.classList.remove('drag-over');
+    });
+
+    zone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        
+        if (draggedElement) {
+            const content = this.querySelector('.drop-zone-content');
+            const clone = draggedElement.cloneNode(true);
+            clone.draggable = false;
+            clone.style.cursor = 'default';
+            content.appendChild(clone);
             
-            dropZones.forEach(zone => {
-                const year = zone.dataset.year;
-                const content = zone.querySelector('.drop-zone-content');
-                const chip = content.querySelector('.country-chip');
-                
-                if (chip) {
-                    const correctYear = chip.dataset.year;
-                    if (correctYear === year) {
-                        zone.classList.add('correct');
-                    } else {
-                        zone.classList.add('incorrect');
-                        allCorrect = false;
-                    }
-                }
-            });
-
-            const feedback = document.getElementById('timeline-feedback');
-            if (allCorrect) {
-                feedback.className = 'timeline-feedback correct show';
-                feedback.textContent = '✓ Perfekt! Alle Länder wurden korrekt zugeordnet. Diese Länder haben über einen Zeitraum von 42 Jahren die Erbschaftssteuer abgeschafft.';
-                activitiesCompleted.timeline = true;
-                setTimeout(() => {
-                    unlockComparison();
-                }, 1500);
-            } else {
-                feedback.className = 'timeline-feedback incorrect show';
-                feedback.textContent = '✗ Nicht ganz. Einige Zuordnungen sind noch nicht korrekt. Versuchen Sie es erneut!';
-                
-                setTimeout(() => {
-                    resetTimeline();
-                }, 3000);
+            draggedElement.classList.add('placed');
+            draggedElement.draggable = false;
+            
+            const country = draggedElement.dataset.country;
+            const year = this.dataset.year;
+            placedCountries[country] = year;
+            
+            updateTimelineProgress();
+            
+            if (Object.keys(placedCountries).length === 6) {
+                document.getElementById('check-timeline').disabled = false;
             }
         }
+    });
+});
 
-        function resetTimeline() {
-            document.querySelectorAll('.drop-zone').forEach(zone => {
-                zone.classList.remove('correct', 'incorrect');
-                zone.querySelector('.drop-zone-content').innerHTML = '';
-            });
-            
-            document.querySelectorAll('.country-chip').forEach(chip => {
-                chip.classList.remove('placed');
-                chip.draggable = true;
-                chip.style.cursor = 'move';
-            });
-            
-            Object.keys(placedCountries).forEach(key => delete placedCountries[key]);
-            updateTimelineProgress();
-            document.getElementById('check-timeline').disabled = true;
-            document.getElementById('timeline-feedback').classList.remove('show');
+function updateTimelineProgress() {
+    const count = Object.keys(placedCountries).length;
+    document.getElementById('timeline-progress').textContent = `${count} von 6 Ländern zugeordnet`;
+}
+
+function checkTimeline() {
+    let allCorrect = true;
+    const dropZones = document.querySelectorAll('.drop-zone');
+    
+    dropZones.forEach(zone => {
+        const year = zone.dataset.year;
+        const content = zone.querySelector('.drop-zone-content');
+        const chip = content.querySelector('.country-chip');
+        
+        if (chip) {
+            const correctYear = chip.dataset.year;
+            if (correctYear === year) {
+                zone.classList.add('correct');
+            } else {
+                zone.classList.add('incorrect');
+                allCorrect = false;
+            }
         }
+    });
 
-        function unlockComparison() {
-            document.getElementById('comparison-section').classList.add('unlocked');
-            document.getElementById('comparison-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+    const feedback = document.getElementById('timeline-feedback');
+    if (allCorrect) {
+        feedback.className = 'timeline-feedback correct show';
+        feedback.textContent = '✓ Perfekt! Alle Länder wurden korrekt zugeordnet. Diese Länder haben über einen Zeitraum von 42 Jahren die Erbschaftssteuer abgeschafft.';
+        activitiesCompleted.timeline = true;
+        setTimeout(() => {
+            unlockComparison();
+        }, 1500);
+    } else {
+        feedback.className = 'timeline-feedback incorrect show';
+        feedback.textContent = '✗ Nicht ganz. Einige Zuordnungen sind noch nicht korrekt. Versuchen Sie es erneut!';
+        
+        setTimeout(() => {
+            resetTimeline();
+        }, 3000);
+    }
+}
 
-        // === LÄNDERVERGLEICH ===
-        let answeredComparisons = new Set();
-        const totalComparisons = 3;
+function resetTimeline() {
+    document.querySelectorAll('.drop-zone').forEach(zone => {
+        zone.classList.remove('correct', 'incorrect');
+        zone.querySelector('.drop-zone-content').innerHTML = '';
+    });
+    
+    document.querySelectorAll('.country-chip').forEach(chip => {
+        chip.classList.remove('placed');
+        chip.draggable = true;
+        chip.style.cursor = 'move';
+    });
+    
+    Object.keys(placedCountries).forEach(key => delete placedCountries[key]);
+    updateTimelineProgress();
+    document.getElementById('check-timeline').disabled = true;
+    document.getElementById('timeline-feedback').classList.remove('show');
+}
 
-        document.querySelectorAll('.country-card').forEach(card => {
-            card.addEventListener('click', function() {
-                const question = this.closest('.comparison-question, [data-question]');
-                if (!question) return;
-                
-                const questionNum = question.dataset.question;
-                if (answeredComparisons.has(questionNum)) return;
-                
-                const correctAnswer = question.dataset.correct;
-                const userAnswer = this.dataset.answer;
-                const feedback = document.getElementById(`comparison-feedback-${questionNum}`);
-                
-                const allCards = question.nextElementSibling.querySelectorAll('.country-card');
-                allCards.forEach(c => c.style.pointerEvents = 'none');
-                
-                this.classList.add('selected');
-                
-                setTimeout(() => {
-                    if (userAnswer === correctAnswer) {
-                        feedback.className = 'comparison-feedback correct show';
-                        feedback.textContent = '✓ Richtig! ' + getComparisonFeedback(questionNum);
-                    } else {
-                        feedback.className = 'comparison-feedback incorrect show';
-                        feedback.textContent = '✗ Nicht ganz. ' + getComparisonFeedback(questionNum);
-                        allCards.forEach(c => {
-                            if (c.dataset.answer === correctAnswer) {
-                                c.classList.add('selected');
-                            }
-                        });
-                    }
-                    
-                    answeredComparisons.add(questionNum);
-                    updateComparisonProgress();
-                    
-                    if (answeredComparisons.size === totalComparisons && !activitiesCompleted.comparison) {
-                        activitiesCompleted.comparison = true;
-                        setTimeout(() => {
-                            unlockFacts();
-                        }, 1500);
-                    }
-                }, 500);
-            });
-        });
+function unlockComparison() {
+    document.getElementById('comparison-section').classList.add('unlocked');
+    document.getElementById('comparison-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
-        function updateComparisonProgress() {
-            document.getElementById('comparison-progress').textContent = `${answeredComparisons.size} von ${totalComparisons} Fragen beantwortet`;
-        }
+// === LÄNDERVERGLEICH ===
+let answeredComparisons = new Set();
+const totalComparisons = 3;
 
-        function getComparisonFeedback(questionNum) {
-            const feedbacks = {
-                '1': 'Schweden schaffte 2004 unter sozialdemokratischer Regierung die Erbschaftssteuer ab, weil Ausnahmen dazu führten, dass die Mittelklasse die Hauptlast trug.',
-                '2': 'Österreich führte 1759 zur Finanzierung des Siebenjährigen Krieges eine der ersten Erbschaftssteuern ein.',
-                '3': 'Die Schweiz ist mit ihrer Doppelbesteuerung (Vermögen UND Erbe) fast weltweit einzigartig – die meisten Länder haben nur eine der beiden Steuern.'
-            };
-            return feedbacks[questionNum] || '';
-        }
-
-        function unlockFacts() {
-            document.getElementById('facts-section').classList.add('unlocked');
-            document.getElementById('facts-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            
-            const badge = document.createElement('div');
-            badge.className = 'unlock-badge';
-            badge.textContent = '🔓 Faktencheck freigeschaltet!';
-            badge.style.marginTop = '20px';
-            document.getElementById('comparison-section').appendChild(badge);
-        }
-
-        // === FAKTENCHECK ===
-        let answeredFacts = new Set();
-        const totalFacts = 4;
-
-        document.querySelectorAll('.fact-card').forEach(card => {
-            const buttons = card.querySelectorAll('.fact-btn');
-            const factNum = card.dataset.fact;
-            const isCorrect = card.dataset.correct === 'true';
-
-            buttons.forEach(button => {
-                button.addEventListener('click', function() {
-                    if (answeredFacts.has(factNum)) return;
-
-                    const userAnswer = this.dataset.answer === 'true';
-                    const feedback = card.querySelector('.fact-feedback');
-                    const answerCorrect = userAnswer === isCorrect;
-
-                    buttons.forEach(btn => btn.disabled = true);
-                    
-                    if (answerCorrect) {
-                        this.classList.add('correct');
-                        feedback.className = 'fact-feedback correct show';
-                        feedback.textContent = '✓ Richtig! ' + getFactFeedback(factNum);
-                    } else {
-                        this.classList.add('incorrect');
-                        buttons.forEach(btn => {
-                            if ((btn.dataset.answer === 'true') === isCorrect) {
-                                btn.classList.add('correct');
-                            }
-                        });
-                        feedback.className = 'fact-feedback incorrect show';
-                        feedback.textContent = '✗ Falsch. ' + getFactFeedback(factNum);
-                    }
-
-                    answeredFacts.add(factNum);
-                    updateFactsProgress();
-
-                    if (answeredFacts.size === totalFacts && !activitiesCompleted.facts) {
-                        activitiesCompleted.facts = true;
-                        setTimeout(() => {
-                            unlockQuiz();
-                        }, 1500);
+document.querySelectorAll('.country-card').forEach(card => {
+    card.addEventListener('click', function() {
+        const question = this.closest('.comparison-question, [data-question]');
+        if (!question) return;
+        
+        const questionNum = question.dataset.question;
+        if (answeredComparisons.has(questionNum)) return;
+        
+        const correctAnswer = question.dataset.correct;
+        const userAnswer = this.dataset.answer;
+        const feedback = document.getElementById(`comparison-feedback-${questionNum}`);
+        
+        const allCards = question.nextElementSibling.querySelectorAll('.country-card');
+        allCards.forEach(c => c.style.pointerEvents = 'none');
+        
+        this.classList.add('selected');
+        
+        setTimeout(() => {
+            if (userAnswer === correctAnswer) {
+                feedback.className = 'comparison-feedback correct show';
+                feedback.textContent = '✓ Richtig! ' + getComparisonFeedback(questionNum);
+            } else {
+                feedback.className = 'comparison-feedback incorrect show';
+                feedback.textContent = '✗ Nicht ganz. ' + getComparisonFeedback(questionNum);
+                allCards.forEach(c => {
+                    if (c.dataset.answer === correctAnswer) {
+                        c.classList.add('selected');
                     }
                 });
-            });
-        });
-
-        function updateFactsProgress() {
-            document.getElementById('facts-progress').textContent = `${answeredFacts.size} von ${totalFacts} Aussagen beantwortet`;
-        }
-
-        function getFactFeedback(factNum) {
-            const feedbacks = {
-                '1': 'Österreich 1759 (Siebenjähriger Krieg) und Grossbritannien 1796 (Krieg gegen Napoleon) sind historische Beispiele.',
-                '2': 'Falsch! Etwa 50% der Länder weltweit kennen heute noch eine Form der Erbschaftssteuer.',
-                '3': 'Richtig! Dieser drastische Rückgang zeigt die geringe Bedeutung von Erbschaftssteuern in den meisten OECD-Ländern heute.',
-                '4': 'Richtig! Laura Seelkopf bezeichnet diese Kombination als «sehr ungewöhnlich» und weltweit einzigartig.'
-            };
-            return feedbacks[factNum] || '';
-        }
-
-        function unlockQuiz() {
-            const quizSection = document.getElementById('quiz-section');
-            quizSection.classList.remove('locked');
-            quizSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            
-            const badge = document.createElement('div');
-            badge.className = 'unlock-badge';
-            badge.textContent = '🔓 Quiz freigeschaltet!';
-            badge.style.marginTop = '20px';
-            document.getElementById('facts-section').appendChild(badge);
-        }
-
-        // === QUIZ ===
-        let currentQuestion = 1;
-        let answeredQuestions = new Set();
-        const totalQuestions = 6;
-
-        document.querySelectorAll('.option').forEach(option => {
-            option.addEventListener('click', function() {
-                const question = this.closest('.question');
-                const questionNum = question.dataset.question;
-                const options = question.querySelectorAll('.option');
-                const feedback = question.querySelector('.feedback');
-                const nextButton = question.querySelector('.next-button');
-                
-                if (answeredQuestions.has(questionNum)) return;
-                
-                options.forEach(opt => opt.classList.remove('selected'));
-                this.classList.add('selected');
-                
-                const isCorrect = this.dataset.answer === 'correct';
-                
-                setTimeout(() => {
-                    if (isCorrect) {
-                        this.classList.add('correct');
-                        feedback.className = 'feedback correct show';
-                        feedback.textContent = '✓ Richtig! ' + getCorrectFeedback(questionNum);
-                    } else {
-                        this.classList.add('incorrect');
-                        options.forEach(opt => {
-                            if (opt.dataset.answer === 'correct') {
-                                opt.classList.add('correct');
-                            }
-                        });
-                        feedback.className = 'feedback incorrect show';
-                        feedback.textContent = '✗ Nicht ganz. ' + getCorrectFeedback(questionNum);
-                    }
-                    
-                    question.classList.add('answered');
-                    answeredQuestions.add(questionNum);
-                    nextButton.classList.add('show');
-                    updateProgress();
-                }, 300);
-            });
-        });
-
-        function showNextQuestion() {
-            const currentQ = document.querySelector(`[data-question="${currentQuestion}"]`);
-            currentQ.classList.remove('active');
-            
-            currentQuestion++;
-            
-            if (currentQuestion <= totalQuestions) {
-                const nextQ = document.querySelector(`[data-question="${currentQuestion}"]`);
-                nextQ.classList.add('active');
-            } else {
-                document.getElementById('completion-message').classList.add('show');
             }
-        }
+            
+            answeredComparisons.add(questionNum);
+            updateComparisonProgress();
+            
+            if (answeredComparisons.size === totalComparisons && !activitiesCompleted.comparison) {
+                activitiesCompleted.comparison = true;
+                setTimeout(() => {
+                    unlockFacts();
+                }, 1500);
+            }
+        }, 500);
+    });
+});
 
-        function updateProgress() {
-            const progress = (answeredQuestions.size / totalQuestions) * 100;
-            document.getElementById('progress-fill').style.width = progress + '%';
-            document.getElementById('quiz-progress').textContent = `${answeredQuestions.size}/${totalQuestions}`;
-        }
+function updateComparisonProgress() {
+    document.getElementById('comparison-progress').textContent = `${answeredComparisons.size} von ${totalComparisons} Fragen beantwortet`;
+}
 
-        function getCorrectFeedback(questionNum) {
-            const feedbacks = {
-                '1': 'Österreich führte sie 1759 zur Finanzierung des Siebenjährigen Krieges ein, Grossbritannien 1796 im Krieg gegen Napoleon.',
-                '2': 'Praktisch kein anderes Land hat beide Steuern – die meisten kennen entweder die eine oder die andere Variante.',
-                '3': 'In Schweden schaffte ausgerechnet eine sozialdemokratische Regierung die Erbschaftssteuer ab – nachdem Ausnahmen dazu führten, dass die Mittelklasse die Hauptlast trug.',
-                '4': 'Dieser drastische Rückgang zeigt die geringe Bedeutung von Erbschaftssteuern in den meisten OECD-Ländern heute.',
-                '5': 'Seelkopf findet ein anderes Design geeigneter: eine moderate Steuer schon ab moderaten Summen.',
-                '6': 'Die genannten Gründe sind: fehlende Dringlichkeit in Friedenszeiten, praktische Probleme, unfaire Lastverteilung und zunehmende Kapitalmobilität.'
-            };
-            return feedbacks[questionNum] || '';
-        }
+function getComparisonFeedback(questionNum) {
+    const feedbacks = {
+        '1': 'Schweden schaffte 2004 unter sozialdemokratischer Regierung die Erbschaftssteuer ab, weil Ausnahmen dazu führten, dass die Mittelklasse die Hauptlast trug.',
+        '2': 'Österreich führte 1759 zur Finanzierung des Siebenjährigen Krieges eine der ersten Erbschaftssteuern ein.',
+        '3': 'Die Schweiz ist mit ihrer Doppelbesteuerung (Vermögen UND Erbe) fast weltweit einzigartig – die meisten Länder haben nur eine der beiden Steuern.'
+    };
+    return feedbacks[questionNum] || '';
+}
 
-        // Beim Laden
-        window.addEventListener('load', () => {
-            document.getElementById('check-timeline').disabled = true;
-            console.log('Page visited: artikel3');
+function unlockFacts() {
+    document.getElementById('facts-section').classList.add('unlocked');
+    document.getElementById('facts-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    const badge = document.createElement('div');
+    badge.className = 'unlock-badge';
+    badge.textContent = '🔓 Faktencheck freigeschaltet!';
+    badge.style.marginTop = '20px';
+    document.getElementById('comparison-section').appendChild(badge);
+}
+
+// === FAKTENCHECK ===
+let answeredFacts = new Set();
+const totalFacts = 4;
+
+document.querySelectorAll('.fact-card').forEach(card => {
+    const buttons = card.querySelectorAll('.fact-btn');
+    const factNum = card.dataset.fact;
+    const isCorrect = card.dataset.correct === 'true';
+
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            if (answeredFacts.has(factNum)) return;
+
+            const userAnswer = this.dataset.answer === 'true';
+            const feedback = card.querySelector('.fact-feedback');
+            const answerCorrect = userAnswer === isCorrect;
+
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (answerCorrect) {
+                this.classList.add('correct');
+                feedback.className = 'fact-feedback correct show';
+                feedback.textContent = '✓ Richtig! ' + getFactFeedback(factNum);
+            } else {
+                this.classList.add('incorrect');
+                buttons.forEach(btn => {
+                    if ((btn.dataset.answer === 'true') === isCorrect) {
+                        btn.classList.add('correct');
+                    }
+                });
+                feedback.className = 'fact-feedback incorrect show';
+                feedback.textContent = '✗ Falsch. ' + getFactFeedback(factNum);
+            }
+
+            answeredFacts.add(factNum);
+            updateFactsProgress();
+
+            if (answeredFacts.size === totalFacts && !activitiesCompleted.facts) {
+                activitiesCompleted.facts = true;
+                setTimeout(() => {
+                    unlockQuiz();
+                }, 1500);
+            }
         });
+    });
+});
+
+function updateFactsProgress() {
+    document.getElementById('facts-progress').textContent = `${answeredFacts.size} von ${totalFacts} Aussagen beantwortet`;
+}
+
+function getFactFeedback(factNum) {
+    const feedbacks = {
+        '1': 'Österreich 1759 (Siebenjähriger Krieg) und Grossbritannien 1796 (Krieg gegen Napoleon) sind historische Beispiele.',
+        '2': 'Falsch! Etwa 50% der Länder weltweit kennen heute noch eine Form der Erbschaftssteuer.',
+        '3': 'Richtig! Dieser drastische Rückgang zeigt die geringe Bedeutung von Erbschaftssteuern in den meisten OECD-Ländern heute.',
+        '4': 'Richtig! Laura Seelkopf bezeichnet diese Kombination als «sehr ungewöhnlich» und weltweit einzigartig.'
+    };
+    return feedbacks[factNum] || '';
+}
+
+function unlockQuiz() {
+    const quizSection = document.getElementById('quiz-section');
+    quizSection.classList.remove('locked');
+    quizSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    const badge = document.createElement('div');
+    badge.className = 'unlock-badge';
+    badge.textContent = '🔓 Quiz freigeschaltet!';
+    badge.style.marginTop = '20px';
+    document.getElementById('facts-section').appendChild(badge);
+}
+
+// === QUIZ ===
+let currentQuestion = 1;
+let answeredQuestions = new Set();
+let correctQuizAnswers = 0;
+const totalQuestions = 6;
+
+document.querySelectorAll('.option').forEach(option => {
+    option.addEventListener('click', function() {
+        const question = this.closest('.question');
+        const questionNum = question.dataset.question;
+        const options = question.querySelectorAll('.option');
+        const feedback = question.querySelector('.feedback');
+        const nextButton = question.querySelector('.next-button');
+        
+        if (answeredQuestions.has(questionNum)) return;
+        
+        options.forEach(opt => opt.classList.remove('selected'));
+        this.classList.add('selected');
+        
+        const isCorrect = this.dataset.answer === 'correct';
+        
+        setTimeout(() => {
+            if (isCorrect) {
+                this.classList.add('correct');
+                feedback.className = 'feedback correct show';
+                feedback.textContent = '✓ Richtig! ' + getCorrectFeedback(questionNum);
+                correctQuizAnswers++;
+            } else {
+                this.classList.add('incorrect');
+                options.forEach(opt => {
+                    if (opt.dataset.answer === 'correct') {
+                        opt.classList.add('correct');
+                    }
+                });
+                feedback.className = 'feedback incorrect show';
+                feedback.textContent = '✗ Nicht ganz. ' + getCorrectFeedback(questionNum);
+            }
+            
+            question.classList.add('answered');
+            answeredQuestions.add(questionNum);
+            nextButton.classList.add('show');
+            updateProgress();
+        }, 300);
+    });
+});
+
+function showNextQuestion() {
+    const currentQ = document.querySelector(`[data-question="${currentQuestion}"]`);
+    currentQ.classList.remove('active');
+    
+    currentQuestion++;
+    
+    if (currentQuestion <= totalQuestions) {
+        const nextQ = document.querySelector(`[data-question="${currentQuestion}"]`);
+        nextQ.classList.add('active');
+    } else {
+        // Quiz abgeschlossen
+        document.getElementById('completion-message').classList.add('show');
+        
+        // Tracking: Quiz Completion
+        trackQuizCompletion('artikel3', correctQuizAnswers, totalQuestions);
+        
+        // Tracking: Article Completion
+        markArticleComplete('artikel3');
+        
+        // Tracking: Time Spent
+        trackTimeSpent('artikel3');
+        
+        console.log('📊 Final Stats:');
+        console.log('  - Correct Quiz Answers:', correctQuizAnswers, '/', totalQuestions);
+    }
+}
+
+function updateProgress() {
+    const progress = (answeredQuestions.size / totalQuestions) * 100;
+    document.getElementById('progress-fill').style.width = progress + '%';
+    document.getElementById('quiz-progress').textContent = `${answeredQuestions.size}/${totalQuestions}`;
+}
+
+function getCorrectFeedback(questionNum) {
+    const feedbacks = {
+        '1': 'Österreich führte sie 1759 zur Finanzierung des Siebenjährigen Krieges ein, Grossbritannien 1796 im Krieg gegen Napoleon.',
+        '2': 'Praktisch kein anderes Land hat beide Steuern – die meisten kennen entweder die eine oder die andere Variante.',
+        '3': 'In Schweden schaffte ausgerechnet eine sozialdemokratische Regierung die Erbschaftssteuer ab – nachdem Ausnahmen dazu führten, dass die Mittelklasse die Hauptlast trug.',
+        '4': 'Dieser drastische Rückgang zeigt die geringe Bedeutung von Erbschaftssteuern in den meisten OECD-Ländern heute.',
+        '5': 'Seelkopf findet ein anderes Design geeigneter: eine moderate Steuer schon ab moderaten Summen.',
+        '6': 'Die genannten Gründe sind: fehlende Dringlichkeit in Friedenszeiten, praktische Probleme, unfaire Lastverteilung und zunehmende Kapitalmobilität.'
+    };
+    return feedbacks[questionNum] || '';
+}
+
+// Beim Laden: Page Visit tracken
+window.addEventListener('load', () => {
+    const userCode = getUserCode();
+    console.log('=== ARTIKEL 3 GELADEN ===');
+    console.log('User:', userCode);
+    console.log('Tracking zu: users/' + userCode + '/');
+    document.getElementById('check-timeline').disabled = true;
+    trackPageVisit('artikel3');
+});
+
+// Beim Verlassen: Time Spent tracken
+window.addEventListener('beforeunload', () => {
+    trackTimeSpent('artikel3');
+});
     </script>
 </body>
 </html>
