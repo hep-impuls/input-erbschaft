@@ -52,13 +52,16 @@
         .header-nav {
             display: flex;
             gap: 20px;
+            flex-wrap: wrap; /* NEU: Links brechen automatisch um */
+    justify-content: center; /* NEU: zentriert die Links */
         }
 
         .header-link {
             color: var(--hep-blue);
             text-decoration: none;
             font-weight: 600;
-            padding: 10px 20px;
+            padding: 8px 15px; /* NEU: kleinere Buttons */
+        font-size: 14px; /* NEU: kleinere Schrift */
             border-radius: 5px;
             transition: all 0.3s;
         }
@@ -88,7 +91,7 @@
         }
 
         .hero h1 {
-            font-size: 48px;
+            font-size: 32px;
             margin-bottom: 20px;
             font-weight: 700;
         }
@@ -305,6 +308,7 @@
             header {
                 flex-direction: column;
                 gap: 15px;
+                padding: 15px 20px; /* NEU: weniger Padding auf mobile */
             }
 
             .hero h1 {
