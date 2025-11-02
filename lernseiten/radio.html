@@ -686,193 +686,253 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="firebase-config.js"></script>
+    <script src="../firebase-config.js"></script>
 
     <script>
-        let currentQuestion = 1;
-        let answeredQuestions = new Set();
-        const totalQuestions = 6;
-        let audioCompleted = false;
-        
-        // Audio-Dauer: ca. 5 Minuten = 300 Sekunden
-        const AUDIO_DURATION = 300; // in Sekunden
-        let timeWatched = 0;
-        let checkInterval;
+// === FIREBASE TRACKING - DASHBOARD-KOMPATIBEL ===
 
-        // Aktivitätskontrolle für Audio
-        function startAudioTracking() {
-            // Simuliere Fortschritt - checke alle 5 Sekunden
-            checkInterval = setInterval(() => {
-                if (!audioCompleted) {
-                    timeWatched += 5;
-                    
-                    // Prüfe, ob Audio komplett gehört wurde
-                    if (timeWatched >= AUDIO_DURATION) {
-                        completeAudio();
-                    }
-                }
-            }, 5000);
-        }
+let pageStartTime = Date.now();
+let currentQuestion = 1;
+let answeredQuestions = new Set();
+let correctQuizAnswers = 0;
+const totalQuestions = 6;
+let audioCompleted = false;
 
-        function completeAudio() {
-            if (audioCompleted) return;
-            
-            audioCompleted = true;
-            clearInterval(checkInterval);
-            
-            // Visuelle Bestätigung
-            const indicator = document.getElementById('listeningIndicator');
-            indicator.classList.add('completed');
-            indicator.innerHTML = `
-                <span class="listening-icon">✅</span>
-                <span class="listening-text">
-                    Radiobeitrag vollständig angehört! Das Quiz ist jetzt freigeschaltet.
-                </span>
-            `;
-            
-            // Quiz freischalten
-            const quizSection = document.getElementById('quizSection');
-            quizSection.classList.remove('locked');
-            quizSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            
-            // Firebase tracking
-            if (typeof trackMediaWatched === 'function') {
-                trackMediaWatched('radio', 'audio', 100);
-            }
-            
-            // Speichern
-            localStorage.setItem('radio_audio_completed', 'true');
-        }
+// Audio-Dauer: ca. 5 Minuten = 300 Sekunden
+const AUDIO_DURATION = 300;
+let timeWatched = 0;
+let checkInterval;
 
-        // Event Listeners für alle Optionen
-        document.querySelectorAll('.option').forEach(option => {
-            option.addEventListener('click', function() {
-                if (!audioCompleted) return;
-                
-                const question = this.closest('.question');
-                const questionNum = question.dataset.question;
-                const options = question.querySelectorAll('.option');
-                const feedback = question.querySelector('.feedback');
-                const nextButton = question.querySelector('.next-button');
-                
-                // Wenn schon beantwortet, nicht mehr ändern
-                if (answeredQuestions.has(questionNum)) return;
-                
-                // Auswahl markieren
-                options.forEach(opt => opt.classList.remove('selected'));
-                this.classList.add('selected');
-                
-                // Antwort prüfen
-                const isCorrect = this.dataset.answer === 'correct';
-                
-                setTimeout(() => {
-                    if (isCorrect) {
-                        this.classList.add('correct');
-                        feedback.className = 'feedback correct show';
-                        feedback.textContent = '✓ Richtig! ' + getCorrectFeedback(questionNum);
-                    } else {
-                        this.classList.add('incorrect');
-                        // Richtige Antwort auch anzeigen
-                        options.forEach(opt => {
-                            if (opt.dataset.answer === 'correct') {
-                                opt.classList.add('correct');
-                            }
-                        });
-                        feedback.className = 'feedback incorrect show';
-                        feedback.textContent = '✗ Nicht ganz. ' + getCorrectFeedback(questionNum);
-                    }
-                    
-                    question.classList.add('answered');
-                    answeredQuestions.add(questionNum);
-                    nextButton.classList.add('show');
-                    updateProgress();
-                    
-                    // Firebase tracking
-                    if (typeof trackQuizAnswer === 'function') {
-                        trackQuizAnswer('radio', questionNum, isCorrect);
-                    }
-                }, 300);
-            });
-        });
+// UserCode holen
+function getUserCode() {
+    return localStorage.getItem('userCode') || 'anonymous';
+}
 
-        function showNextQuestion() {
-            const currentQ = document.querySelector(`[data-question="${currentQuestion}"]`);
-            currentQ.classList.remove('active');
+// === TRACKING FUNKTIONEN ===
+
+// Page Visit tracken
+function trackPageVisit(pageName) {
+    const userCode = getUserCode();
+    
+    firebase.database().ref('users/' + userCode + '/visits/' + pageName).set({
+        timestamp: Date.now(),
+        page: pageName
+    }).then(() => {
+        console.log('✓ Page visit tracked:', pageName);
+    }).catch(err => {
+        console.error('✗ Error tracking visit:', err);
+    });
+}
+
+// Media Watched tracken
+function trackMediaWatched(pageName, mediaType, percentWatched) {
+    const userCode = getUserCode();
+    
+    firebase.database().ref('users/' + userCode + '/media/' + pageName).set({
+        mediaType: mediaType,
+        percentWatched: percentWatched,
+        timestamp: Date.now()
+    }).then(() => {
+        console.log('✓ Media watched tracked:', percentWatched + '%');
+    }).catch(err => {
+        console.error('✗ Error tracking media:', err);
+    });
+}
+
+// Time Spent tracken
+function trackTimeSpent(pageName) {
+    const userCode = getUserCode();
+    const timeSpent = Math.floor((Date.now() - pageStartTime) / 1000);
+    
+    firebase.database().ref('users/' + userCode + '/timeSpent/' + pageName).set({
+        seconds: timeSpent,
+        timestamp: Date.now()
+    }).then(() => {
+        console.log('✓ Time spent tracked:', timeSpent, 'seconds');
+    }).catch(err => {
+        console.error('✗ Error tracking time:', err);
+    });
+}
+
+// Quiz Completion tracken
+function trackQuizCompletion(pageName, correctAnswers, totalQuestions) {
+    const userCode = getUserCode();
+    
+    firebase.database().ref('users/' + userCode + '/quizzes/' + pageName).set({
+        correctAnswers: correctAnswers,
+        totalQuestions: totalQuestions,
+        timestamp: Date.now()
+    }).then(() => {
+        console.log('✓ Quiz completion tracked:', correctAnswers, '/', totalQuestions);
+    }).catch(err => {
+        console.error('✗ Error tracking quiz:', err);
+    });
+}
+
+// Article Completion markieren
+function markArticleComplete(pageName) {
+    const userCode = getUserCode();
+    
+    firebase.database().ref('users/' + userCode + '/completions/' + pageName).set({
+        completed: true,
+        timestamp: Date.now()
+    }).then(() => {
+        console.log('✓ Article marked as complete:', pageName);
+    }).catch(err => {
+        console.error('✗ Error marking complete:', err);
+    });
+}
+
+// === AUDIO TRACKING ===
+
+function startAudioTracking() {
+    checkInterval = setInterval(() => {
+        if (!audioCompleted) {
+            timeWatched += 5;
             
-            currentQuestion++;
-            
-            if (currentQuestion <= totalQuestions) {
-                const nextQ = document.querySelector(`[data-question="${currentQuestion}"]`);
-                nextQ.classList.add('active');
-            } else {
-                document.getElementById('completion-message').classList.add('show');
-                if (typeof markArticleComplete === 'function') {
-                    markArticleComplete('radio');
-                }
-            }
-        }
-
-        function updateProgress() {
-            const progress = (answeredQuestions.size / totalQuestions) * 100;
-            document.getElementById('progress-fill').style.width = progress + '%';
-            document.getElementById('quiz-progress').textContent = `${answeredQuestions.size}/${totalQuestions}`;
-        }
-
-        function getCorrectFeedback(questionNum) {
-            const feedbacks = {
-                '1': 'In diesem Zeitraum sank die Erbschaftssteuer in den Kantonen dramatisch auf nur noch ein Drittel des ursprünglichen Niveaus.',
-                '2': 'Der Wettbewerb zwischen den Kantonen um vermögende Steuerzahler führte zu einer Abwärtsspirale bei den Erbschaftssteuern.',
-                '3': 'Die erste Erbschaftssteuer war eine nationale Steuer in der Helvetischen Republik – erst später wurde die Kompetenz an die Kantone übergeben.',
-                '4': 'Der Landesring der Unabhängigen war eine politische Bewegung, die Migros nahestand. Die Initiative wurde vom Volk abgelehnt.',
-                '5': 'Diese beiden Innerschweizer Kantone haben durch besonders niedrige Erbschaftssteuern vermögende Personen angezogen und damit den Steuerwettbewerb angeheizt.',
-                '6': 'In vielen Kantonen zahlen direkte Nachkommen heute keine oder nur noch sehr geringe Erbschaftssteuern, während die Vermögensungleichheit zunimmt.'
-            };
-            return feedbacks[questionNum] || '';
-        }
-
-        // Fortschritt beim Laden wiederherstellen
-        window.addEventListener('load', () => {
-            // Prüfe, ob Audio bereits komplett gehört wurde
-            const audioWasCompleted = localStorage.getItem('radio_audio_completed');
-            if (audioWasCompleted === 'true') {
+            if (timeWatched >= AUDIO_DURATION) {
                 completeAudio();
-            } else {
-                // Starte Audio-Tracking
-                startAudioTracking();
             }
-            
-            const savedProgress = localStorage.getItem('radio_progress');
-            if (savedProgress) {
-                const progress = JSON.parse(savedProgress);
-                answeredQuestions = new Set(progress.answered);
-                currentQuestion = progress.current;
-                
-                // Zeige die aktuelle Frage
-                document.querySelectorAll('.question').forEach(q => q.classList.remove('active'));
-                if (currentQuestion <= totalQuestions) {
-                    document.querySelector(`[data-question="${currentQuestion}"]`).classList.add('active');
-                }
-                
-                updateProgress();
-                
-                if (answeredQuestions.size === totalQuestions) {
-                    document.getElementById('completion-message').classList.add('show');
-                }
-            }
-            
-            // Seitenbesuch tracken
-            if (typeof trackPageVisit === 'function') {
-                trackPageVisit('radio');
-            }
-        });
+        }
+    }, 5000);
+}
 
-        // Fortschritt speichern
-        window.addEventListener('beforeunload', () => {
-            localStorage.setItem('radio_progress', JSON.stringify({
-                answered: [...answeredQuestions],
-                current: currentQuestion
-            }));
-        });
+function completeAudio() {
+    if (audioCompleted) return;
+    
+    audioCompleted = true;
+    clearInterval(checkInterval);
+    
+    // Visuelle Bestätigung
+    const indicator = document.getElementById('listeningIndicator');
+    indicator.classList.add('completed');
+    indicator.innerHTML = `
+        <span class="listening-icon">✅</span>
+        <span class="listening-text">
+            Radiobeitrag vollständig angehört! Das Quiz ist jetzt freigeschaltet.
+        </span>
+    `;
+    
+    // Quiz freischalten
+    const quizSection = document.getElementById('quizSection');
+    quizSection.classList.remove('locked');
+    quizSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Firebase tracking
+    trackMediaWatched('radio', 'audio', 100);
+    
+    // localStorage speichern
+    localStorage.setItem('radio_audio_completed', 'true');
+}
+
+// === QUIZ ===
+
+document.querySelectorAll('.option').forEach(option => {
+    option.addEventListener('click', function() {
+        if (!audioCompleted) return;
+        
+        const question = this.closest('.question');
+        const questionNum = question.dataset.question;
+        const options = question.querySelectorAll('.option');
+        const feedback = question.querySelector('.feedback');
+        const nextButton = question.querySelector('.next-button');
+        
+        if (answeredQuestions.has(questionNum)) return;
+        
+        options.forEach(opt => opt.classList.remove('selected'));
+        this.classList.add('selected');
+        
+        const isCorrect = this.dataset.answer === 'correct';
+        
+        setTimeout(() => {
+            if (isCorrect) {
+                this.classList.add('correct');
+                feedback.className = 'feedback correct show';
+                feedback.textContent = '✓ Richtig! ' + getCorrectFeedback(questionNum);
+                correctQuizAnswers++;
+            } else {
+                this.classList.add('incorrect');
+                options.forEach(opt => {
+                    if (opt.dataset.answer === 'correct') {
+                        opt.classList.add('correct');
+                    }
+                });
+                feedback.className = 'feedback incorrect show';
+                feedback.textContent = '✗ Nicht ganz. ' + getCorrectFeedback(questionNum);
+            }
+            
+            question.classList.add('answered');
+            answeredQuestions.add(questionNum);
+            nextButton.classList.add('show');
+            updateProgress();
+        }, 300);
+    });
+});
+
+function showNextQuestion() {
+    const currentQ = document.querySelector(`[data-question="${currentQuestion}"]`);
+    currentQ.classList.remove('active');
+    
+    currentQuestion++;
+    
+    if (currentQuestion <= totalQuestions) {
+        const nextQ = document.querySelector(`[data-question="${currentQuestion}"]`);
+        nextQ.classList.add('active');
+    } else {
+        // Quiz abgeschlossen
+        document.getElementById('completion-message').classList.add('show');
+        
+        // Tracking
+        trackQuizCompletion('radio', correctQuizAnswers, totalQuestions);
+        markArticleComplete('radio');
+        trackTimeSpent('radio');
+        
+        console.log('📊 Final Stats - Radio:');
+        console.log('  - Correct Quiz Answers:', correctQuizAnswers, '/', totalQuestions);
+    }
+}
+
+function updateProgress() {
+    const progress = (answeredQuestions.size / totalQuestions) * 100;
+    document.getElementById('progress-fill').style.width = progress + '%';
+    document.getElementById('quiz-progress').textContent = `${answeredQuestions.size}/${totalQuestions}`;
+}
+
+function getCorrectFeedback(questionNum) {
+    const feedbacks = {
+        '1': 'In diesem Zeitraum sank die Erbschaftssteuer in den Kantonen dramatisch auf nur noch ein Drittel des ursprünglichen Niveaus.',
+        '2': 'Der Wettbewerb zwischen den Kantonen um vermögende Steuerzahler führte zu einer Abwärtsspirale bei den Erbschaftssteuern.',
+        '3': 'Die erste Erbschaftssteuer war eine nationale Steuer in der Helvetischen Republik – erst später wurde die Kompetenz an die Kantone übergeben.',
+        '4': 'Der Landesring der Unabhängigen war eine politische Bewegung, die Migros nahestand. Die Initiative wurde vom Volk abgelehnt.',
+        '5': 'Diese beiden Innerschweizer Kantone haben durch besonders niedrige Erbschaftssteuern vermögende Personen angezogen und damit den Steuerwettbewerb angeheizt.',
+        '6': 'In vielen Kantonen zahlen direkte Nachkommen heute keine oder nur noch sehr geringe Erbschaftssteuern, während die Vermögensungleichheit zunimmt.'
+    };
+    return feedbacks[questionNum] || '';
+}
+
+// Beim Laden
+window.addEventListener('load', () => {
+    const userCode = getUserCode();
+    console.log('=== RADIO GELADEN ===');
+    console.log('User:', userCode);
+    console.log('Tracking zu: users/' + userCode + '/');
+    
+    // Prüfe, ob Audio bereits gehört wurde
+    const audioWasCompleted = localStorage.getItem('radio_audio_completed');
+    if (audioWasCompleted === 'true') {
+        completeAudio();
+    } else {
+        startAudioTracking();
+    }
+    
+    // Page Visit tracken
+    trackPageVisit('radio');
+});
+
+// Beim Verlassen
+window.addEventListener('beforeunload', () => {
+    trackTimeSpent('radio');
+});
     </script>
 </body>
 </html>
