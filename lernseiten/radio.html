@@ -783,6 +783,101 @@ function markArticleComplete(pageName) {
     });
 }
 
+// === LOCALSTORAGE FUNKTIONEN ===
+
+function getStorageKey(key) {
+    const userCode = getUserCode();
+    return `radio_${userCode}_${key}`;
+}
+
+function saveProgress() {
+    localStorage.setItem(getStorageKey('audioCompleted'), audioCompleted);
+    localStorage.setItem(getStorageKey('currentQuestion'), currentQuestion);
+    localStorage.setItem(getStorageKey('answeredQuestions'), JSON.stringify([...answeredQuestions]));
+    localStorage.setItem(getStorageKey('correctQuizAnswers'), correctQuizAnswers);
+    console.log('✓ Progress saved to localStorage');
+}
+
+function loadProgress() {
+    const savedAudioCompleted = localStorage.getItem(getStorageKey('audioCompleted'));
+    const savedCurrentQuestion = localStorage.getItem(getStorageKey('currentQuestion'));
+    const savedAnsweredQuestions = localStorage.getItem(getStorageKey('answeredQuestions'));
+    const savedCorrectAnswers = localStorage.getItem(getStorageKey('correctQuizAnswers'));
+    
+    let hasProgress = false;
+    
+    if (savedAudioCompleted === 'true') {
+        audioCompleted = true;
+        hasProgress = true;
+    }
+    
+    if (savedCurrentQuestion) {
+        currentQuestion = parseInt(savedCurrentQuestion);
+        hasProgress = true;
+    }
+    
+    if (savedAnsweredQuestions) {
+        answeredQuestions = new Set(JSON.parse(savedAnsweredQuestions));
+        hasProgress = true;
+    }
+    
+    if (savedCorrectAnswers) {
+        correctQuizAnswers = parseInt(savedCorrectAnswers);
+        hasProgress = true;
+    }
+    
+    return hasProgress;
+}
+
+function restoreUIState() {
+    // Restore Audio Completion
+    if (audioCompleted) {
+        const indicator = document.getElementById('listeningIndicator');
+        indicator.classList.add('completed');
+        indicator.innerHTML = `
+            <span class="listening-icon">✅</span>
+            <span class="listening-text">
+                Radiobeitrag vollständig angehört! Das Quiz ist jetzt freigeschaltet.
+            </span>
+        `;
+        document.getElementById('quizSection').classList.remove('locked');
+    }
+    
+    // Restore Quiz
+    if (answeredQuestions.size > 0) {
+        document.querySelectorAll('.question').forEach((q, index) => {
+            const qNum = (index + 1).toString();
+            q.classList.toggle('active', index === currentQuestion - 1);
+            
+            if (answeredQuestions.has(qNum)) {
+                q.classList.add('answered');
+                const options = q.querySelectorAll('.option');
+                options.forEach(opt => {
+                    if (opt.classList.contains('correct') || opt.classList.contains('incorrect')) {
+                        // Already has state
+                    } else if (opt.dataset.answer === 'correct') {
+                        opt.classList.add('correct');
+                    }
+                });
+                
+                const nextButton = q.querySelector('.next-button');
+                if (nextButton) {
+                    nextButton.classList.add('show');
+                }
+                
+                const feedback = q.querySelector('.feedback');
+                if (feedback && !feedback.classList.contains('show')) {
+                    feedback.className = 'feedback correct show';
+                    feedback.textContent = '✓ Beantwortet';
+                }
+            }
+        });
+        updateProgress();
+    }
+    
+    console.log('✓ UI state restored from localStorage');
+}
+
 // === AUDIO TRACKING ===
 
 function startAudioTracking() {
@@ -822,7 +917,7 @@ function completeAudio() {
     trackMediaWatched('radio', 'audio', 100);
     
     // localStorage speichern
-    localStorage.setItem('radio_audio_completed', 'true');
+    saveProgress();
 }
 
 // === QUIZ ===
@@ -865,6 +960,7 @@ document.querySelectorAll('.option').forEach(option => {
             answeredQuestions.add(questionNum);
             nextButton.classList.add('show');
             updateProgress();
+            saveProgress();
         }, 300);
     });
 });
@@ -878,6 +974,7 @@ function showNextQuestion() {
     if (currentQuestion <= totalQuestions) {
         const nextQ = document.querySelector(`[data-question="${currentQuestion}"]`);
         nextQ.classList.add('active');
+        saveProgress();
     } else {
         // Quiz abgeschlossen
         document.getElementById('completion-message').classList.add('show');
@@ -886,6 +983,8 @@ function showNextQuestion() {
         trackQuizCompletion('radio', correctQuizAnswers, totalQuestions);
         markArticleComplete('radio');
         trackTimeSpent('radio');
+        
+        saveProgress();
         
         console.log('📊 Final Stats - Radio:');
         console.log('  - Correct Quiz Answers:', correctQuizAnswers, '/', totalQuestions);
@@ -910,29 +1009,40 @@ function getCorrectFeedback(questionNum) {
     return feedbacks[questionNum] || '';
 }
 
-// Beim Laden
+// === INITIALISIERUNG ===
+
 window.addEventListener('load', () => {
     const userCode = getUserCode();
     console.log('=== RADIO GELADEN ===');
     console.log('User:', userCode);
     console.log('Tracking zu: users/' + userCode + '/');
     
-    // Prüfe, ob Audio bereits gehört wurde
-    const audioWasCompleted = localStorage.getItem('radio_audio_completed');
-    if (audioWasCompleted === 'true') {
-        completeAudio();
-    } else {
-        startAudioTracking();
-    }
-    
     // Page Visit tracken
     trackPageVisit('radio');
+    
+    const hasProgress = loadProgress();
+    if (hasProgress) {
+        console.log('🔄 Restoring previous progress...');
+        restoreUIState();
+    } else {
+        console.log('🆕 Starting fresh');
+    }
+    
+    // Audio Tracking starten (nur wenn noch nicht abgeschlossen)
+    if (!audioCompleted) {
+        startAudioTracking();
+    }
 });
 
 // Beim Verlassen
 window.addEventListener('beforeunload', () => {
     trackTimeSpent('radio');
 });
+
+// Auto-Save alle 30 Sekunden
+setInterval(() => {
+    saveProgress();
+}, 30000);
     </script>
 </body>
 </html>
