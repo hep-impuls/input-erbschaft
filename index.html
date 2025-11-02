@@ -52,16 +52,16 @@
         .header-nav {
             display: flex;
             gap: 20px;
-            flex-wrap: wrap; /* NEU: Links brechen automatisch um */
-    justify-content: center; /* NEU: zentriert die Links */
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .header-link {
             color: var(--hep-blue);
             text-decoration: none;
             font-weight: 600;
-            padding: 8px 15px; /* NEU: kleinere Buttons */
-        font-size: 14px; /* NEU: kleinere Schrift */
+            padding: 8px 15px;
+            font-size: 14px;
             border-radius: 5px;
             transition: all 0.3s;
         }
@@ -91,7 +91,7 @@
         }
 
         .hero h1 {
-            font-size: 32px;
+            font-size: 48px;
             margin-bottom: 20px;
             font-weight: 700;
         }
@@ -308,7 +308,11 @@
             header {
                 flex-direction: column;
                 gap: 15px;
-                padding: 15px 20px; /* NEU: weniger Padding auf mobile */
+                padding: 15px 20px;
+            }
+
+            .header-nav {
+                width: 100%;
             }
 
             .hero h1 {
@@ -335,7 +339,6 @@
         <div class="header-nav">
             <a href="https://app.Lumi.education/run/rsDjd5" class="header-link back">← Zurück zum Lernset</a>
             <a href="login.html" class="header-link">Login</a>
-            <a href="umfrage.html" class="header-link">📊 Umfrage</a>
             <a href="dashboard.html" class="header-link dashboard">📊 Dashboard</a>
         </div>
     </header>
