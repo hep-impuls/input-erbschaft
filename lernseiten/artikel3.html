@@ -1092,7 +1092,9 @@
                     firstVisit: serverTimestamp(),
                     pageName: pageName,
                     timeSpent: 0,
-                    activities: {}
+                    activitiesProgress: {}, // NEU: Initialisierung des Fortschritts-Objekts
+                    quizScore: 0,
+                    quizTotal: 0
                 };
 
                 // Setzt den letzten Besuch und erhöht den Zähler.
@@ -1120,20 +1122,18 @@
             try {
                 await runTransaction(db, async (transaction) => {
                     const sfDoc = await transaction.get(docRef);
-                    if (!sfDoc.exists()) {
-                        throw "Document does not exist!";
-                    }
+                    // Erstellt Dokument, falls es nicht existiert (z.B. falls trackPageVisit fehlschlug)
+                    const existingTime = sfDoc.exists() ? (sfDoc.data().timeSpent || 0) : 0;
 
-                    const newTotalTime = (sfDoc.data().timeSpent || 0) + timeSpent;
-                    transaction.update(docRef, { 
+                    const newTotalTime = existingTime + timeSpent;
+                    transaction.set(docRef, { 
                         timeSpent: newTotalTime, 
                         lastActivityTime: serverTimestamp() 
-                    });
+                    }, { merge: true });
                 });
-                console.log('✓ Time spent tracked (session):', timeSpent, 'seconds. Total:', '... (Transaction successful)');
+                console.log('✓ Time spent tracked (session):', timeSpent, 'seconds.');
             } catch (err) {
-                // Das ist in Ordnung, da das Dokument möglicherweise noch nicht existiert (wird mit trackPageVisit erstellt)
-                console.warn('✗ Transaction failed for time tracking (will rely on previous visit track):', err.message);
+                console.warn('✗ Transaction failed for time tracking:', err.message);
             }
         }
 
@@ -1159,25 +1159,34 @@
         }
 
         /**
-         * Trackt den Abschluss einer spezifischen Aktivität.
+         * Speichert den aktuellen Fortschritt aller Aktivitäten ab.
          * @param {string} pageName - Der Name der aktuellen Seite.
-         * @param {string} activityName - Der Name der Aktivität (z.B. 'timeline', 'comparison', 'facts').
+         * @param {object} progressState - Der aktuelle Zustand des activitiesCompleted-Objekts.
          */
-        export async function trackActivityComplete(pageName, activityName) {
+        export async function saveProgressState(pageName, progressState) {
             const docRef = getUserDocRef(pageName);
             if (!docRef) return;
             
             try {
-                const activityPath = `activities.${activityName}`;
+                // Aktualisiert den gesamten Fortschrittszustand des Moduls
                 await updateDoc(docRef, {
-                    [activityPath]: {
-                        completed: true,
-                        timestamp: serverTimestamp()
-                    }
+                    activitiesProgress: progressState,
+                    lastActivityTime: serverTimestamp()
                 });
-                console.log('✓ Activity completion tracked:', activityName);
+                console.log('✓ Activity progress state saved:', progressState);
             } catch (err) {
-                console.error('✗ Error tracking activity:', err);
+                // Fallback: Falls das Dokument nicht existiert, versuchen wir es mit setDoc zu erstellen
+                console.warn('Document not found for update, trying setDoc fallback...');
+                try {
+                     await setDoc(docRef, {
+                        pageName: pageName,
+                        activitiesProgress: progressState,
+                        firstVisit: serverTimestamp()
+                    }, { merge: true });
+                    console.log('✓ Activity progress saved via setDoc fallback.');
+                } catch(setErr) {
+                     console.error('✗ Error saving progress (setDoc fallback failed):', setErr);
+                }
             }
         }
 
@@ -1185,7 +1194,7 @@
         window.trackPageVisit = trackPageVisit;
         window.trackTimeSpent = trackTimeSpent;
         window.trackQuizCompletion = trackQuizCompletion;
-        window.trackActivityComplete = trackActivityComplete;
+        window.saveProgressState = saveProgressState; // NEUE Funktion
     </script>
 
     <!-- HIER BEGINNT DER HAUPT-JAVASCRIPT-BLOCK OHNE MODULE IMPORTS -->
@@ -1194,6 +1203,8 @@
 
         // WICHTIG: Die Firebase-Funktionen werden über window.FunctionName zur Verfügung gestellt (siehe Modul-Script oben)
 
+        const PAGE_NAME = 'artikel3'; // Redefiniert, da dies der nicht-Modul-Teil ist.
+        
         let activitiesCompleted = {
             timeline: false,
             comparison: false,
@@ -1341,8 +1352,8 @@
                 activitiesCompleted.timeline = true;
                 checkBtn.style.display = 'none';
                 
-                // TRACKING: Timeline Activity Complete (FIREBASE)
-                if (window.trackActivityComplete) window.trackActivityComplete(PAGE_NAME, 'timeline');
+                // TRACKING: Speichere den gesamten Fortschrittszustand (FIREBASE)
+                if (window.saveProgressState) window.saveProgressState(PAGE_NAME, activitiesCompleted);
                 
                 setTimeout(() => {
                     unlockComparison();
@@ -1458,8 +1469,8 @@
                     if (answeredComparisons.size === totalComparisons && !activitiesCompleted.comparison) {
                         activitiesCompleted.comparison = true;
                         
-                        // TRACKING: Comparison Activity Complete (FIREBASE)
-                        if (window.trackActivityComplete) window.trackActivityComplete(PAGE_NAME, 'comparison');
+                        // TRACKING: Speichere den gesamten Fortschrittszustand (FIREBASE)
+                        if (window.saveProgressState) window.saveProgressState(PAGE_NAME, activitiesCompleted);
                         
                         setTimeout(() => {
                             unlockFacts();
@@ -1547,8 +1558,8 @@
                     if (answeredFacts.size === totalFacts && !activitiesCompleted.facts) {
                         activitiesCompleted.facts = true;
                         
-                        // TRACKING: Facts Activity Complete (FIREBASE)
-                        if (window.trackActivityComplete) window.trackActivityComplete(PAGE_NAME, 'facts');
+                        // TRACKING: Speichere den gesamten Fortschrittszustand (FIREBASE)
+                        if (window.saveProgressState) window.saveProgressState(PAGE_NAME, activitiesCompleted);
                         
                         setTimeout(() => {
                             unlockQuiz();
@@ -1602,7 +1613,6 @@
         let answeredQuestions = new Set();
         let correctQuizAnswers = 0;
         const totalQuestions = 6;
-        const PAGE_NAME = 'artikel3'; // Redefiniert, da dies der nicht-Modul-Teil ist.
 
         document.querySelectorAll('.option').forEach(option => {
             option.addEventListener('click', function() {
