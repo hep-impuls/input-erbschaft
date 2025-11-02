@@ -919,6 +919,146 @@ function markArticleComplete(pageName) {
     });
 }
 
+// === LOCALSTORAGE FUNKTIONEN ===
+
+function getStorageKey(key) {
+    const userCode = getUserCode();
+    return `artikel1_${userCode}_${key}`;
+}
+
+function saveProgress() {
+    localStorage.setItem(getStorageKey('currentCardIndex'), currentCardIndex);
+    localStorage.setItem(getStorageKey('viewedCards'), JSON.stringify([...viewedCards]));
+    localStorage.setItem(getStorageKey('answeredStatements'), JSON.stringify([...answeredStatements]));
+    localStorage.setItem(getStorageKey('correctStatementsCount'), correctStatementsCount);
+    localStorage.setItem(getStorageKey('currentQuestion'), currentQuestion);
+    localStorage.setItem(getStorageKey('answeredQuestions'), JSON.stringify([...answeredQuestions]));
+    localStorage.setItem(getStorageKey('correctQuizAnswers'), correctQuizAnswers);
+    localStorage.setItem(getStorageKey('tfSectionUnlocked'), document.getElementById('true-false-section').classList.contains('unlocked'));
+    localStorage.setItem(getStorageKey('quizUnlocked'), !document.getElementById('quiz-section').classList.contains('locked'));
+    console.log('💾 Progress saved to localStorage');
+}
+
+function loadProgress() {
+    const savedCardIndex = localStorage.getItem(getStorageKey('currentCardIndex'));
+    const savedViewedCards = localStorage.getItem(getStorageKey('viewedCards'));
+    const savedAnsweredStatements = localStorage.getItem(getStorageKey('answeredStatements'));
+    const savedCorrectStatements = localStorage.getItem(getStorageKey('correctStatementsCount'));
+    const savedCurrentQuestion = localStorage.getItem(getStorageKey('currentQuestion'));
+    const savedAnsweredQuestions = localStorage.getItem(getStorageKey('answeredQuestions'));
+    const savedCorrectQuiz = localStorage.getItem(getStorageKey('correctQuizAnswers'));
+    const savedTFUnlocked = localStorage.getItem(getStorageKey('tfSectionUnlocked'));
+    const savedQuizUnlocked = localStorage.getItem(getStorageKey('quizUnlocked'));
+
+    if (savedCardIndex) {
+        currentCardIndex = parseInt(savedCardIndex);
+    }
+    
+    if (savedViewedCards) {
+        const cardsArray = JSON.parse(savedViewedCards);
+        viewedCards.clear();
+        cardsArray.forEach(card => viewedCards.add(card));
+    }
+    
+    if (savedAnsweredStatements) {
+        const statementsArray = JSON.parse(savedAnsweredStatements);
+        answeredStatements.clear();
+        statementsArray.forEach(stmt => answeredStatements.add(stmt));
+    }
+    
+    if (savedCorrectStatements) {
+        correctStatementsCount = parseInt(savedCorrectStatements);
+    }
+    
+    if (savedCurrentQuestion) {
+        currentQuestion = parseInt(savedCurrentQuestion);
+    }
+    
+    if (savedAnsweredQuestions) {
+        const questionsArray = JSON.parse(savedAnsweredQuestions);
+        answeredQuestions.clear();
+        questionsArray.forEach(q => answeredQuestions.add(q));
+    }
+    
+    if (savedCorrectQuiz) {
+        correctQuizAnswers = parseInt(savedCorrectQuiz);
+    }
+    
+    if (savedTFUnlocked === 'true') {
+        document.getElementById('true-false-section').classList.add('unlocked');
+    }
+    
+    if (savedQuizUnlocked === 'true') {
+        document.getElementById('quiz-section').classList.remove('locked');
+    }
+    
+    console.log('✅ Progress loaded from localStorage');
+    return savedCardIndex !== null; // Returns true if there was saved progress
+}
+
+function restoreUIState() {
+    // Karten-Display wiederherstellen
+    updateCardDisplay();
+    
+    // Richtig/Falsch Aussagen wiederherstellen
+    answeredStatements.forEach(statementNum => {
+        const card = document.querySelector(`[data-statement="${statementNum}"]`);
+        if (card) {
+            card.classList.add('answered');
+            const buttons = card.querySelectorAll('.tf-btn');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            const isCorrect = card.dataset.correct === 'true';
+            const feedback = card.querySelector('.statement-feedback');
+            
+            // Finde den richtigen Button und markiere ihn
+            const correctButton = [...buttons].find(btn => (btn.dataset.answer === 'true') === isCorrect);
+            if (correctButton) {
+                correctButton.classList.add('correct');
+            }
+            
+            feedback.className = 'statement-feedback correct show';
+            feedback.textContent = '✓ Bereits beantwortet';
+        }
+    });
+    updateTFProgress();
+    
+    // Quiz-Fragen wiederherstellen
+    answeredQuestions.forEach(questionNum => {
+        const question = document.querySelector(`[data-question="${questionNum}"]`);
+        if (question) {
+            question.classList.add('answered');
+            const correctOption = question.querySelector('[data-answer="correct"]');
+            if (correctOption) {
+                correctOption.classList.add('correct', 'selected');
+            }
+            const feedback = question.querySelector('.feedback');
+            const nextButton = question.querySelector('.next-button');
+            if (feedback) {
+                feedback.className = 'feedback show';
+                feedback.textContent = '✓ Bereits beantwortet';
+            }
+            if (nextButton) {
+                nextButton.classList.add('show');
+            }
+        }
+    });
+    
+    // Aktuelle Quiz-Frage anzeigen
+    if (currentQuestion <= totalQuestions) {
+        document.querySelectorAll('.question').forEach(q => q.classList.remove('active'));
+        const currentQ = document.querySelector(`[data-question="${currentQuestion}"]`);
+        if (currentQ) {
+            currentQ.classList.add('active');
+        }
+    } else {
+        // Quiz abgeschlossen
+        document.getElementById('completion-message').classList.add('show');
+    }
+    
+    updateProgress();
+}
+
 // === KARTEN-AKTIVITÄT ===
 let currentCardIndex = 1;
 const totalCards = 5;
@@ -948,6 +1088,8 @@ function updateCardDisplay() {
     if (viewedCards.size === totalCards) {
         unlockTrueFalseSection();
     }
+    
+    saveProgress();
 }
 
 document.getElementById('prev-card').addEventListener('click', () => {
@@ -969,6 +1111,7 @@ document.getElementById('next-card').addEventListener('click', () => {
 
 function unlockTrueFalseSection() {
     document.getElementById('true-false-section').classList.add('unlocked');
+    saveProgress();
 }
 
 // === RICHTIG ODER FALSCH AKTIVITÄT ===
@@ -1010,6 +1153,7 @@ document.querySelectorAll('.statement-card').forEach(card => {
             answeredStatements.add(statementNum);
             card.classList.add('answered');
             updateTFProgress();
+            saveProgress();
 
             if (answeredStatements.size === totalStatements) {
                 unlockQuiz();
@@ -1033,6 +1177,8 @@ function unlockQuiz() {
         badge.textContent = '🔓 Quiz freigeschaltet!';
         badge.style.marginTop = '20px';
         document.getElementById('true-false-section').appendChild(badge);
+        
+        saveProgress();
     }, 1000);
 }
 
@@ -1078,6 +1224,7 @@ document.querySelectorAll('.option').forEach(option => {
             answeredQuestions.add(questionNum);
             nextButton.classList.add('show');
             updateProgress();
+            saveProgress();
         }, 300);
     });
 });
@@ -1091,6 +1238,7 @@ function showNextQuestion() {
     if (currentQuestion <= totalQuestions) {
         const nextQ = document.querySelector(`[data-question="${currentQuestion}"]`);
         nextQ.classList.add('active');
+        saveProgress();
     } else {
         // Quiz abgeschlossen
         document.getElementById('completion-message').classList.add('show');
@@ -1103,6 +1251,8 @@ function showNextQuestion() {
         
         // Tracking: Time Spent
         trackTimeSpent('artikel1');
+        
+        saveProgress();
         
         console.log('📊 Final Stats:');
         console.log('  - Correct Quiz Answers:', correctQuizAnswers, '/', totalQuestions);
@@ -1128,19 +1278,36 @@ function getCorrectFeedback(questionNum) {
     return feedbacks[questionNum] || '';
 }
 
-// Beim Laden: Page Visit tracken
+// === INITIALISIERUNG ===
+
+// Beim Laden: Page Visit tracken und Progress laden
 window.addEventListener('load', () => {
     const userCode = getUserCode();
     console.log('=== ARTIKEL 1 GELADEN ===');
     console.log('User:', userCode);
     console.log('Tracking zu: users/' + userCode + '/');
+    
     trackPageVisit('artikel1');
+    
+    // Progress aus localStorage laden
+    const hasProgress = loadProgress();
+    if (hasProgress) {
+        console.log('🔄 Restoring previous progress...');
+        restoreUIState();
+    } else {
+        console.log('🆕 Starting fresh');
+    }
 });
 
 // Beim Verlassen: Time Spent tracken
 window.addEventListener('beforeunload', () => {
     trackTimeSpent('artikel1');
 });
+
+// Periodisch speichern (alle 30 Sekunden)
+setInterval(() => {
+    saveProgress();
+}, 30000);
     </script>
 </body>
 </html>
