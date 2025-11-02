@@ -694,6 +694,7 @@
             
             modules.forEach(module => {
                 const isCompleted = myData.completions && myData.completions[module.key];
+                const isVisited = myData.visits && myData.visits[module.key];
                 
                 // Quiz-Details holen
                 let quizInfo = '';
@@ -713,19 +714,31 @@
                     timeInfo = `${mins} Min`;
                 }
                 
+                // Button-Text und Status bestimmen
+                let buttonText = '→ Starten';
+                let statusInfo = 'Noch nicht begonnen';
+                
+                if (isCompleted) {
+                    buttonText = '📊 Analysieren';
+                    statusInfo = quizInfo || 'Abgeschlossen';
+                } else if (isVisited) {
+                    buttonText = '▶ Weitermachen';
+                    statusInfo = quizInfo || 'In Bearbeitung';
+                }
+                
                 const moduleItem = document.createElement('div');
                 moduleItem.className = 'module-item' + (isCompleted ? ' completed' : '');
                 moduleItem.innerHTML = `
-                    <div class="module-status">${isCompleted ? '✓' : '○'}</div>
+                    <div class="module-status">${isCompleted ? '✓' : (isVisited ? '▶' : '○')}</div>
                     <div class="module-info">
                         <div class="module-name">${module.icon} ${module.name}</div>
                         <div class="module-details">
-                            ${quizInfo ? quizInfo : 'Noch nicht begonnen'}
+                            ${statusInfo}
                             ${timeInfo ? ' • ' + timeInfo : ''}
                         </div>
                     </div>
                     <a href="${module.link}" class="module-link">
-                        ${isCompleted ? '↻ Wiederholen' : '→ Starten'}
+                        ${buttonText}
                     </a>
                 `;
                 
