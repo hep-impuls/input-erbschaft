@@ -1219,7 +1219,7 @@
             </div>
 
             <div class="navigation">
-                <a href="artikel3.html" class="nav-button secondary">← Vorheriger Artikel</a>
+                <a href="../index.html" class="nav-button secondary">← Zurück zur Übersicht</a>
                 <a href="../umfrage.html" class="nav-button">Umfrage →</a>
             </div>
         </div>
@@ -1227,401 +1227,491 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="firebase-config.js"></script>
+    <script src="../firebase-config.js"></script>
 
     <script>
-        // === SLIDES ===
-        let currentSlide = 1;
-        const totalSlides = 8;
+// === FIREBASE TRACKING - KOMPATIBEL MIT DASHBOARD ===
 
-        function changeSlide(direction) {
-            const slides = document.querySelectorAll('.slide');
-            slides[currentSlide - 1].classList.remove('active');
+let pageStartTime = Date.now();
+
+// UserCode aus localStorage holen
+function getUserCode() {
+    return localStorage.getItem('userCode') || 'anonymous';
+}
+
+// === TRACKING FUNKTIONEN (Dashboard-kompatibel) ===
+
+// Page Visit tracken
+function trackPageVisit(pageName) {
+    const userCode = getUserCode();
+    const timestamp = Date.now();
+    
+    firebase.database().ref('users/' + userCode + '/visits/' + pageName).set({
+        timestamp: timestamp,
+        page: pageName
+    }).then(() => {
+        console.log('✓ Page visit tracked:', pageName);
+    }).catch(err => {
+        console.error('✗ Error tracking visit:', err);
+    });
+}
+
+// Time Spent tracken
+function trackTimeSpent(pageName) {
+    const userCode = getUserCode();
+    const timeSpent = Math.floor((Date.now() - pageStartTime) / 1000); // Sekunden
+    
+    firebase.database().ref('users/' + userCode + '/timeSpent/' + pageName).set({
+        seconds: timeSpent,
+        timestamp: Date.now()
+    }).then(() => {
+        console.log('✓ Time spent tracked:', timeSpent, 'seconds');
+    }).catch(err => {
+        console.error('✗ Error tracking time:', err);
+    });
+}
+
+// Quiz Completion tracken
+function trackQuizCompletion(pageName, correctAnswers, totalQuestions) {
+    const userCode = getUserCode();
+    
+    firebase.database().ref('users/' + userCode + '/quizzes/' + pageName).set({
+        correctAnswers: correctAnswers,
+        totalQuestions: totalQuestions,
+        timestamp: Date.now()
+    }).then(() => {
+        console.log('✓ Quiz completion tracked:', correctAnswers, '/', totalQuestions);
+    }).catch(err => {
+        console.error('✗ Error tracking quiz:', err);
+    });
+}
+
+// Article Completion markieren
+function markArticleComplete(pageName) {
+    const userCode = getUserCode();
+    
+    firebase.database().ref('users/' + userCode + '/completions/' + pageName).set({
+        completed: true,
+        timestamp: Date.now()
+    }).then(() => {
+        console.log('✓ Article marked as complete:', pageName);
+    }).catch(err => {
+        console.error('✗ Error marking complete:', err);
+    });
+}
+
+// === SLIDES ===
+let currentSlide = 1;
+const totalSlides = 8;
+
+function changeSlide(direction) {
+    const slides = document.querySelectorAll('.slide');
+    slides[currentSlide - 1].classList.remove('active');
+    
+    currentSlide += direction;
+    
+    if (currentSlide < 1) currentSlide = 1;
+    if (currentSlide > totalSlides) currentSlide = totalSlides;
+    
+    slides[currentSlide - 1].classList.add('active');
+    updateSlideProgress();
+    
+    // Buttons aktivieren/deaktivieren
+    document.getElementById('prev-slide').disabled = (currentSlide === 1);
+    document.getElementById('next-slide').disabled = (currentSlide === totalSlides);
+    
+    // Nach letzter Slide Aktivitäten freischalten
+    if (currentSlide === totalSlides) {
+        setTimeout(() => {
+            unlockRanking();
+        }, 1000);
+    }
+}
+
+function updateSlideProgress() {
+    document.getElementById('slide-progress').textContent = `Seite ${currentSlide} von ${totalSlides}`;
+}
+
+function unlockRanking() {
+    document.getElementById('ranking-section').classList.add('unlocked');
+    document.getElementById('ranking-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// === AKTIVITÄTSSTATUS ===
+let activitiesCompleted = {
+    ranking: false,
+    matching: false,
+    facts: false
+};
+
+// === KANTONS-RANKING DRAG & DROP ===
+let draggedElement = null;
+const placedCantons = {};
+
+document.querySelectorAll('.canton-chip').forEach(chip => {
+    chip.addEventListener('dragstart', function(e) {
+        draggedElement = this;
+        this.classList.add('dragging');
+    });
+
+    chip.addEventListener('dragend', function() {
+        this.classList.remove('dragging');
+    });
+});
+
+document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('drag-over');
+    });
+
+    zone.addEventListener('dragleave', function() {
+        this.classList.remove('drag-over');
+    });
+
+    zone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        
+        if (draggedElement) {
+            const content = this.querySelector('.drop-zone-content');
+            const clone = draggedElement.cloneNode(true);
+            clone.draggable = false;
+            clone.style.cursor = 'default';
+            content.appendChild(clone);
             
-            currentSlide += direction;
+            draggedElement.classList.add('placed');
+            draggedElement.draggable = false;
             
-            if (currentSlide < 1) currentSlide = 1;
-            if (currentSlide > totalSlides) currentSlide = totalSlides;
+            const canton = draggedElement.dataset.canton;
+            const rank = this.dataset.rank;
+            placedCantons[canton] = rank;
             
-            slides[currentSlide - 1].classList.add('active');
-            updateSlideProgress();
-            
-            // Buttons aktivieren/deaktivieren
-            document.getElementById('prev-slide').disabled = (currentSlide === 1);
-            document.getElementById('next-slide').disabled = (currentSlide === totalSlides);
-            
-            // Nach letzter Slide Aktivitäten freischalten
-            if (currentSlide === totalSlides) {
-                setTimeout(() => {
-                    unlockRanking();
-                }, 1000);
-            }
-        }
-
-        function updateSlideProgress() {
-            document.getElementById('slide-progress').textContent = `Seite ${currentSlide} von ${totalSlides}`;
-        }
-
-        function unlockRanking() {
-            document.getElementById('ranking-section').classList.add('unlocked');
-            document.getElementById('ranking-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        // === AKTIVITÄTSSTATUS ===
-        let activitiesCompleted = {
-            ranking: false,
-            matching: false,
-            facts: false
-        };
-
-        // === KANTONS-RANKING DRAG & DROP ===
-        let draggedElement = null;
-        const placedCantons = {};
-
-        document.querySelectorAll('.canton-chip').forEach(chip => {
-            chip.addEventListener('dragstart', function(e) {
-                draggedElement = this;
-                this.classList.add('dragging');
-            });
-
-            chip.addEventListener('dragend', function() {
-                this.classList.remove('dragging');
-            });
-        });
-
-        document.querySelectorAll('.drop-zone').forEach(zone => {
-            zone.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                this.classList.add('drag-over');
-            });
-
-            zone.addEventListener('dragleave', function() {
-                this.classList.remove('drag-over');
-            });
-
-            zone.addEventListener('drop', function(e) {
-                e.preventDefault();
-                this.classList.remove('drag-over');
-                
-                if (draggedElement) {
-                    const content = this.querySelector('.drop-zone-content');
-                    const clone = draggedElement.cloneNode(true);
-                    clone.draggable = false;
-                    clone.style.cursor = 'default';
-                    content.appendChild(clone);
-                    
-                    draggedElement.classList.add('placed');
-                    draggedElement.draggable = false;
-                    
-                    const canton = draggedElement.dataset.canton;
-                    const rank = this.dataset.rank;
-                    placedCantons[canton] = rank;
-                    
-                    updateRankingProgress();
-                    
-                    if (Object.keys(placedCantons).length === 6) {
-                        document.getElementById('check-ranking').disabled = false;
-                    }
-                }
-            });
-        });
-
-        function updateRankingProgress() {
-            const count = Object.keys(placedCantons).length;
-            document.getElementById('ranking-progress').textContent = `${count} von 6 Kantonen zugeordnet`;
-        }
-
-        function checkRanking() {
-            let allCorrect = true;
-            const dropZones = document.querySelectorAll('.drop-zone');
-            
-            dropZones.forEach(zone => {
-                const rank = zone.dataset.rank;
-                const content = zone.querySelector('.drop-zone-content');
-                const chip = content.querySelector('.canton-chip');
-                
-                if (chip) {
-                    const correctRank = chip.dataset.rank;
-                    if (correctRank === rank) {
-                        zone.classList.add('correct');
-                    } else {
-                        zone.classList.add('incorrect');
-                        allCorrect = false;
-                    }
-                }
-            });
-
-            const feedback = document.getElementById('ranking-feedback');
-            if (allCorrect) {
-                feedback.className = 'activity-feedback correct show';
-                feedback.textContent = '✓ Perfekt! Alle Kantone wurden korrekt zugeordnet. Nidwalden weist dank Hergiswil mit Abstand die höchste Superreichen-Dichte auf.';
-                activitiesCompleted.ranking = true;
-                setTimeout(() => {
-                    unlockMatching();
-                }, 1500);
-            } else {
-                feedback.className = 'activity-feedback incorrect show';
-                feedback.textContent = '✗ Nicht ganz. Einige Zuordnungen sind noch nicht korrekt. Versuchen Sie es erneut!';
-                
-                setTimeout(() => {
-                    resetRanking();
-                }, 3000);
-            }
-        }
-
-        function resetRanking() {
-            document.querySelectorAll('.drop-zone').forEach(zone => {
-                zone.classList.remove('correct', 'incorrect');
-                zone.querySelector('.drop-zone-content').innerHTML = '';
-            });
-            
-            document.querySelectorAll('.canton-chip').forEach(chip => {
-                chip.classList.remove('placed');
-                chip.draggable = true;
-                chip.style.cursor = 'move';
-            });
-            
-            Object.keys(placedCantons).forEach(key => delete placedCantons[key]);
             updateRankingProgress();
-            document.getElementById('check-ranking').disabled = true;
-            document.getElementById('ranking-feedback').classList.remove('show');
-        }
-
-        function unlockMatching() {
-            document.getElementById('matching-section').classList.add('unlocked');
-            document.getElementById('matching-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        // === ZAHLEN-MATCHING ===
-        let answeredMatching = new Set();
-        const totalMatching = 4;
-
-        document.querySelectorAll('.matching-card').forEach(card => {
-            card.addEventListener('click', function() {
-                const questionNum = this.dataset.question;
-                if (answeredMatching.has(questionNum)) return;
-                
-                const isCorrect = this.dataset.answer === 'correct';
-                const feedback = document.getElementById(`matching-feedback-${questionNum}`);
-                const allCards = document.querySelectorAll(`[data-question="${questionNum}"]`);
-                
-                allCards.forEach(c => c.style.pointerEvents = 'none');
-                this.classList.add('selected');
-                
-                setTimeout(() => {
-                    if (isCorrect) {
-                        this.classList.remove('selected');
-                        this.classList.add('correct');
-                        feedback.className = 'activity-feedback correct show';
-                        feedback.textContent = '✓ Richtig! ' + getMatchingFeedback(questionNum);
-                    } else {
-                        this.classList.remove('selected');
-                        this.classList.add('incorrect');
-                        allCards.forEach(c => {
-                            if (c.dataset.answer === 'correct') {
-                                c.classList.add('correct');
-                            }
-                        });
-                        feedback.className = 'activity-feedback incorrect show';
-                        feedback.textContent = '✗ Nicht ganz. ' + getMatchingFeedback(questionNum);
-                    }
-                    
-                    answeredMatching.add(questionNum);
-                    updateMatchingProgress();
-                    
-                    if (answeredMatching.size === totalMatching && !activitiesCompleted.matching) {
-                        activitiesCompleted.matching = true;
-                        setTimeout(() => {
-                            unlockFacts();
-                        }, 1500);
-                    }
-                }, 500);
-            });
-        });
-
-        function updateMatchingProgress() {
-            document.getElementById('matching-progress').textContent = `${answeredMatching.size} von ${totalMatching} Fragen beantwortet`;
-        }
-
-        function getMatchingFeedback(questionNum) {
-            const feedbacks = {
-                '1': '59 Superreiche in einem Dorf von 6\'300 Einwohnern – das ist jeder hundertste!',
-                '2': 'Die 2800 Superreichen zahlen 27% der Vermögenssteuern und zusätzlich 3,1% der Einkommenssteuern.',
-                '3': 'Zürich würde 340 Millionen Franken Steuerausfälle erleiden, etwa 10% der Einkommenssteuern.',
-                '4': 'Von 760 (2005) auf 2500 (2021) – eine Verdreifachung der Superreichen in nur 16 Jahren.'
-            };
-            return feedbacks[questionNum] || '';
-        }
-
-        function unlockFacts() {
-            document.getElementById('facts-section').classList.add('unlocked');
-            document.getElementById('facts-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
             
-            const badge = document.createElement('div');
-            badge.className = 'unlock-badge';
-            badge.textContent = '🔓 Faktencheck freigeschaltet!';
-            badge.style.marginTop = '20px';
-            document.getElementById('matching-section').appendChild(badge);
+            if (Object.keys(placedCantons).length === 6) {
+                document.getElementById('check-ranking').disabled = false;
+            }
         }
+    });
+});
 
-        // === FAKTENCHECK ===
-        let answeredFacts = new Set();
-        const totalFacts = 4;
+function updateRankingProgress() {
+    const count = Object.keys(placedCantons).length;
+    document.getElementById('ranking-progress').textContent = `${count} von 6 Kantonen zugeordnet`;
+}
 
-        document.querySelectorAll('.fact-card').forEach(card => {
-            const buttons = card.querySelectorAll('.fact-btn');
-            const factNum = card.dataset.fact;
-            const isCorrect = card.dataset.correct === 'true';
+function checkRanking() {
+    let allCorrect = true;
+    const dropZones = document.querySelectorAll('.drop-zone');
+    
+    dropZones.forEach(zone => {
+        const rank = zone.dataset.rank;
+        const content = zone.querySelector('.drop-zone-content');
+        const chip = content.querySelector('.canton-chip');
+        
+        if (chip) {
+            const correctRank = chip.dataset.rank;
+            if (correctRank === rank) {
+                zone.classList.add('correct');
+            } else {
+                zone.classList.add('incorrect');
+                allCorrect = false;
+            }
+        }
+    });
 
-            buttons.forEach(button => {
-                button.addEventListener('click', function() {
-                    if (answeredFacts.has(factNum)) return;
+    const feedback = document.getElementById('ranking-feedback');
+    if (allCorrect) {
+        feedback.className = 'activity-feedback correct show';
+        feedback.textContent = '✓ Perfekt! Alle Kantone wurden korrekt zugeordnet. Nidwalden weist dank Hergiswil mit Abstand die höchste Superreichen-Dichte auf.';
+        activitiesCompleted.ranking = true;
+        setTimeout(() => {
+            unlockMatching();
+        }, 1500);
+    } else {
+        feedback.className = 'activity-feedback incorrect show';
+        feedback.textContent = '✗ Nicht ganz. Einige Zuordnungen sind noch nicht korrekt. Versuchen Sie es erneut!';
+        
+        setTimeout(() => {
+            resetRanking();
+        }, 3000);
+    }
+}
 
-                    const userAnswer = this.dataset.answer === 'true';
-                    const feedback = card.querySelector('.fact-feedback');
-                    const answerCorrect = userAnswer === isCorrect;
+function resetRanking() {
+    document.querySelectorAll('.drop-zone').forEach(zone => {
+        zone.classList.remove('correct', 'incorrect');
+        zone.querySelector('.drop-zone-content').innerHTML = '';
+    });
+    
+    document.querySelectorAll('.canton-chip').forEach(chip => {
+        chip.classList.remove('placed');
+        chip.draggable = true;
+        chip.style.cursor = 'move';
+    });
+    
+    Object.keys(placedCantons).forEach(key => delete placedCantons[key]);
+    updateRankingProgress();
+    document.getElementById('check-ranking').disabled = true;
+    document.getElementById('ranking-feedback').classList.remove('show');
+}
 
-                    buttons.forEach(btn => btn.disabled = true);
-                    
-                    if (answerCorrect) {
-                        this.classList.add('correct');
-                        feedback.className = 'fact-feedback correct show';
-                        feedback.textContent = '✓ Richtig! ' + getFactFeedback(factNum);
-                    } else {
-                        this.classList.add('incorrect');
-                        buttons.forEach(btn => {
-                            if ((btn.dataset.answer === 'true') === isCorrect) {
-                                btn.classList.add('correct');
-                            }
-                        });
-                        feedback.className = 'fact-feedback incorrect show';
-                        feedback.textContent = '✗ Falsch. ' + getFactFeedback(factNum);
-                    }
+function unlockMatching() {
+    document.getElementById('matching-section').classList.add('unlocked');
+    document.getElementById('matching-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
-                    answeredFacts.add(factNum);
-                    updateFactsProgress();
+// === ZAHLEN-MATCHING ===
+let answeredMatching = new Set();
+const totalMatching = 4;
 
-                    if (answeredFacts.size === totalFacts && !activitiesCompleted.facts) {
-                        activitiesCompleted.facts = true;
-                        setTimeout(() => {
-                            unlockQuiz();
-                        }, 1500);
+document.querySelectorAll('.matching-card').forEach(card => {
+    card.addEventListener('click', function() {
+        const questionNum = this.dataset.question;
+        if (answeredMatching.has(questionNum)) return;
+        
+        const isCorrect = this.dataset.answer === 'correct';
+        const feedback = document.getElementById(`matching-feedback-${questionNum}`);
+        const allCards = document.querySelectorAll(`[data-question="${questionNum}"]`);
+        
+        allCards.forEach(c => c.style.pointerEvents = 'none');
+        this.classList.add('selected');
+        
+        setTimeout(() => {
+            if (isCorrect) {
+                this.classList.remove('selected');
+                this.classList.add('correct');
+                feedback.className = 'activity-feedback correct show';
+                feedback.textContent = '✓ Richtig! ' + getMatchingFeedback(questionNum);
+            } else {
+                this.classList.remove('selected');
+                this.classList.add('incorrect');
+                allCards.forEach(c => {
+                    if (c.dataset.answer === 'correct') {
+                        c.classList.add('correct');
                     }
                 });
-            });
-        });
-
-        function updateFactsProgress() {
-            document.getElementById('facts-progress').textContent = `${answeredFacts.size} von ${totalFacts} Aussagen beantwortet`;
-        }
-
-        function getFactFeedback(factNum) {
-            const feedbacks = {
-                '1': 'Stimmt genau – 59 von 6\'300 Einwohnern entspricht etwa jedem hundertsten!',
-                '2': 'Falsch! Nur Zug verzeichnet weiterhin Zuwachs. Heinz Tännler kann sich selbst nicht erklären warum.',
-                '3': 'Richtig! Diese 250 Personen sind für mehr als die Hälfte der Vermögenssteuern verantwortlich.',
-                '4': 'Korrekt! Mit 22 Superreichen pro 10\'000 Einwohner liegt Nidwalden deutlich vor Schwyz und Zug (je 18).'
-            };
-            return feedbacks[factNum] || '';
-        }
-
-        function unlockQuiz() {
-            const quizSection = document.getElementById('quiz-section');
-            quizSection.classList.remove('locked');
-            quizSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            
-            const badge = document.createElement('div');
-            badge.className = 'unlock-badge';
-            badge.textContent = '🔓 Lernkontrollen freigeschaltet!';
-            badge.style.marginTop = '20px';
-            document.getElementById('facts-section').appendChild(badge);
-        }
-
-        // === QUIZ ===
-        let currentQuestion = 1;
-        let answeredQuestions = new Set();
-        const totalQuestions = 6;
-
-        document.querySelectorAll('.option').forEach(option => {
-            option.addEventListener('click', function() {
-                const question = this.closest('.question');
-                const questionNum = question.dataset.question;
-                const options = question.querySelectorAll('.option');
-                const feedback = question.querySelector('.feedback');
-                const nextButton = question.querySelector('.next-button');
-                
-                if (answeredQuestions.has(questionNum)) return;
-                
-                options.forEach(opt => opt.classList.remove('selected'));
-                this.classList.add('selected');
-                
-                const isCorrect = this.dataset.answer === 'correct';
-                
-                setTimeout(() => {
-                    if (isCorrect) {
-                        this.classList.add('correct');
-                        feedback.className = 'feedback correct show';
-                        feedback.textContent = '✓ Richtig! ' + getQuizFeedback(questionNum);
-                    } else {
-                        this.classList.add('incorrect');
-                        options.forEach(opt => {
-                            if (opt.dataset.answer === 'correct') {
-                                opt.classList.add('correct');
-                            }
-                        });
-                        feedback.className = 'feedback incorrect show';
-                        feedback.textContent = '✗ Nicht ganz. ' + getQuizFeedback(questionNum);
-                    }
-                    
-                    question.classList.add('answered');
-                    answeredQuestions.add(questionNum);
-                    nextButton.classList.add('show');
-                    updateProgress();
-                    
-                    // Firebase tracking
-                    trackQuizAnswer('artikel4', questionNum, isCorrect);
-                }, 300);
-            });
-        });
-
-        function showNextQuestion() {
-            const currentQ = document.querySelector(`.question[data-question="${currentQuestion}"]`);
-            currentQ.classList.remove('active');
-            
-            currentQuestion++;
-            
-            if (currentQuestion <= totalQuestions) {
-                const nextQ = document.querySelector(`.question[data-question="${currentQuestion}"]`);
-                nextQ.classList.add('active');
-            } else {
-                document.getElementById('completion-message').classList.add('show');
-                markArticleComplete('artikel4');
+                feedback.className = 'activity-feedback incorrect show';
+                feedback.textContent = '✗ Nicht ganz. ' + getMatchingFeedback(questionNum);
             }
-        }
+            
+            answeredMatching.add(questionNum);
+            updateMatchingProgress();
+            
+            if (answeredMatching.size === totalMatching && !activitiesCompleted.matching) {
+                activitiesCompleted.matching = true;
+                setTimeout(() => {
+                    unlockFacts();
+                }, 1500);
+            }
+        }, 500);
+    });
+});
 
-        function updateProgress() {
-            const progress = (answeredQuestions.size / totalQuestions) * 100;
-            document.getElementById('progress-fill').style.width = progress + '%';
-            document.getElementById('quiz-progress').textContent = `${answeredQuestions.size}/${totalQuestions}`;
-        }
+function updateMatchingProgress() {
+    document.getElementById('matching-progress').textContent = `${answeredMatching.size} von ${totalMatching} Fragen beantwortet`;
+}
 
-        function getQuizFeedback(questionNum) {
-            const feedbacks = {
-                '1': 'Das bedeutet: Jeder hundertste Hergiswiler ist ein Superreicher – eine extreme Konzentration!',
-                '2': 'Dank Hergiswil weist Nidwalden mit 22 Superreichen pro 10\'000 Einwohner die mit Abstand höchste Dichte auf.',
-                '3': 'Dazu kommen noch 3,1% der Einkommenssteuern. Bei einem Totalausfall hätte das spürbare Folgen für alle.',
-                '4': 'Finanzdirektor Heinz Tännler kann sich selber nicht erklären, warum das Interesse von reichen Ausländern «ungebrochen hoch» ist.',
-                '5': 'Diese Verdreifachung zeigt, wie stark die Schweiz in den letzten Jahren von Superreichen abhängig geworden ist.',
-                '6': 'Das entspricht ungefähr 10 Prozent der Einkommenssteuern von natürlichen Personen im Kanton Zürich.'
-            };
-            return feedbacks[questionNum] || '';
-        }
+function getMatchingFeedback(questionNum) {
+    const feedbacks = {
+        '1': '59 Superreiche in einem Dorf von 6\'300 Einwohnern – das ist jeder hundertste!',
+        '2': 'Die 2800 Superreichen zahlen 27% der Vermögenssteuern und zusätzlich 3,1% der Einkommenssteuern.',
+        '3': 'Zürich würde 340 Millionen Franken Steuerausfälle erleiden, etwa 10% der Einkommenssteuern.',
+        '4': 'Von 760 (2005) auf 2500 (2021) – eine Verdreifachung der Superreichen in nur 16 Jahren.'
+    };
+    return feedbacks[questionNum] || '';
+}
 
-        // Beim Laden
-        window.addEventListener('load', () => {
-            document.getElementById('check-ranking').disabled = true;
-            trackPageVisit('artikel4');
+function unlockFacts() {
+    document.getElementById('facts-section').classList.add('unlocked');
+    document.getElementById('facts-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    const badge = document.createElement('div');
+    badge.className = 'unlock-badge';
+    badge.textContent = '🔓 Faktencheck freigeschaltet!';
+    badge.style.marginTop = '20px';
+    document.getElementById('matching-section').appendChild(badge);
+}
+
+// === FAKTENCHECK ===
+let answeredFacts = new Set();
+const totalFacts = 4;
+
+document.querySelectorAll('.fact-card').forEach(card => {
+    const buttons = card.querySelectorAll('.fact-btn');
+    const factNum = card.dataset.fact;
+    const isCorrect = card.dataset.correct === 'true';
+
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            if (answeredFacts.has(factNum)) return;
+
+            const userAnswer = this.dataset.answer === 'true';
+            const feedback = card.querySelector('.fact-feedback');
+            const answerCorrect = userAnswer === isCorrect;
+
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (answerCorrect) {
+                this.classList.add('correct');
+                feedback.className = 'fact-feedback correct show';
+                feedback.textContent = '✓ Richtig! ' + getFactFeedback(factNum);
+            } else {
+                this.classList.add('incorrect');
+                buttons.forEach(btn => {
+                    if ((btn.dataset.answer === 'true') === isCorrect) {
+                        btn.classList.add('correct');
+                    }
+                });
+                feedback.className = 'fact-feedback incorrect show';
+                feedback.textContent = '✗ Falsch. ' + getFactFeedback(factNum);
+            }
+
+            answeredFacts.add(factNum);
+            updateFactsProgress();
+
+            if (answeredFacts.size === totalFacts && !activitiesCompleted.facts) {
+                activitiesCompleted.facts = true;
+                setTimeout(() => {
+                    unlockQuiz();
+                }, 1500);
+            }
         });
+    });
+});
+
+function updateFactsProgress() {
+    document.getElementById('facts-progress').textContent = `${answeredFacts.size} von ${totalFacts} Aussagen beantwortet`;
+}
+
+function getFactFeedback(factNum) {
+    const feedbacks = {
+        '1': 'Stimmt genau – 59 von 6\'300 Einwohnern entspricht etwa jedem hundertsten!',
+        '2': 'Falsch! Nur Zug verzeichnet weiterhin Zuwachs. Heinz Tännler kann sich selbst nicht erklären warum.',
+        '3': 'Richtig! Diese 250 Personen sind für mehr als die Hälfte der Vermögenssteuern verantwortlich.',
+        '4': 'Korrekt! Mit 22 Superreichen pro 10\'000 Einwohner liegt Nidwalden deutlich vor Schwyz und Zug (je 18).'
+    };
+    return feedbacks[factNum] || '';
+}
+
+function unlockQuiz() {
+    const quizSection = document.getElementById('quiz-section');
+    quizSection.classList.remove('locked');
+    quizSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    const badge = document.createElement('div');
+    badge.className = 'unlock-badge';
+    badge.textContent = '🔓 Lernkontrollen freigeschaltet!';
+    badge.style.marginTop = '20px';
+    document.getElementById('facts-section').appendChild(badge);
+}
+
+// === QUIZ ===
+let currentQuestion = 1;
+let answeredQuestions = new Set();
+let correctQuizAnswers = 0;
+const totalQuestions = 6;
+
+document.querySelectorAll('.option').forEach(option => {
+    option.addEventListener('click', function() {
+        const question = this.closest('.question');
+        const questionNum = question.dataset.question;
+        const options = question.querySelectorAll('.option');
+        const feedback = question.querySelector('.feedback');
+        const nextButton = question.querySelector('.next-button');
+        
+        if (answeredQuestions.has(questionNum)) return;
+        
+        options.forEach(opt => opt.classList.remove('selected'));
+        this.classList.add('selected');
+        
+        const isCorrect = this.dataset.answer === 'correct';
+        
+        setTimeout(() => {
+            if (isCorrect) {
+                this.classList.add('correct');
+                feedback.className = 'feedback correct show';
+                feedback.textContent = '✓ Richtig! ' + getQuizFeedback(questionNum);
+                correctQuizAnswers++;
+            } else {
+                this.classList.add('incorrect');
+                options.forEach(opt => {
+                    if (opt.dataset.answer === 'correct') {
+                        opt.classList.add('correct');
+                    }
+                });
+                feedback.className = 'feedback incorrect show';
+                feedback.textContent = '✗ Nicht ganz. ' + getQuizFeedback(questionNum);
+            }
+            
+            question.classList.add('answered');
+            answeredQuestions.add(questionNum);
+            nextButton.classList.add('show');
+            updateProgress();
+        }, 300);
+    });
+});
+
+function showNextQuestion() {
+    const currentQ = document.querySelector(`.question[data-question="${currentQuestion}"]`);
+    currentQ.classList.remove('active');
+    
+    currentQuestion++;
+    
+    if (currentQuestion <= totalQuestions) {
+        const nextQ = document.querySelector(`.question[data-question="${currentQuestion}"]`);
+        nextQ.classList.add('active');
+    } else {
+        // Quiz abgeschlossen
+        document.getElementById('completion-message').classList.add('show');
+        
+        // Tracking: Quiz Completion
+        trackQuizCompletion('artikel4', correctQuizAnswers, totalQuestions);
+        
+        // Tracking: Article Completion
+        markArticleComplete('artikel4');
+        
+        // Tracking: Time Spent
+        trackTimeSpent('artikel4');
+        
+        console.log('📊 Final Stats:');
+        console.log('  - Correct Quiz Answers:', correctQuizAnswers, '/', totalQuestions);
+    }
+}
+
+function updateProgress() {
+    const progress = (answeredQuestions.size / totalQuestions) * 100;
+    document.getElementById('progress-fill').style.width = progress + '%';
+    document.getElementById('quiz-progress').textContent = `${answeredQuestions.size}/${totalQuestions}`;
+}
+
+function getQuizFeedback(questionNum) {
+    const feedbacks = {
+        '1': 'Das bedeutet: Jeder hundertste Hergiswiler ist ein Superreicher – eine extreme Konzentration!',
+        '2': 'Dank Hergiswil weist Nidwalden mit 22 Superreichen pro 10\'000 Einwohner die mit Abstand höchste Dichte auf.',
+        '3': 'Dazu kommen noch 3,1% der Einkommenssteuern. Bei einem Totalausfall hätte das spürbare Folgen für alle.',
+        '4': 'Finanzdirektor Heinz Tännler kann sich selber nicht erklären, warum das Interesse von reichen Ausländern «ungebrochen hoch» ist.',
+        '5': 'Diese Verdreifachung zeigt, wie stark die Schweiz in den letzten Jahren von Superreichen abhängig geworden ist.',
+        '6': 'Das entspricht ungefähr 10 Prozent der Einkommenssteuern von natürlichen Personen im Kanton Zürich.'
+    };
+    return feedbacks[questionNum] || '';
+}
+
+// Beim Laden: Page Visit tracken
+window.addEventListener('load', () => {
+    const userCode = getUserCode();
+    console.log('=== ARTIKEL 4 GELADEN ===');
+    console.log('User:', userCode);
+    console.log('Tracking zu: users/' + userCode + '/');
+    document.getElementById('check-ranking').disabled = true;
+    trackPageVisit('artikel4');
+});
+
+// Beim Verlassen: Time Spent tracken
+window.addEventListener('beforeunload', () => {
+    trackTimeSpent('artikel4');
+});
     </script>
 </body>
 </html>
