@@ -849,221 +849,302 @@
     <script src="../firebase-config.js"></script>
 
     <script>
-        // === KARTEN-AKTIVITÄT ===
-        let currentCardIndex = 1;
-        const totalCards = 5;
-        const viewedCards = new Set([1]); // Erste Karte ist bereits sichtbar
+      // === FIREBASE TRACKING FUNKTIONEN ===
 
-        function updateCardDisplay() {
-            document.querySelectorAll('.info-card').forEach(card => {
-                card.classList.remove('active');
-            });
-            document.querySelector(`[data-card="${currentCardIndex}"]`).classList.add('active');
-            document.getElementById('current-card').textContent = currentCardIndex;
+// Session ID aus localStorage holen oder neu erstellen
+function getSessionId() {
+    let sessionId = localStorage.getItem('sessionId');
+    if (!sessionId) {
+        sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('sessionId', sessionId);
+    }
+    return sessionId;
+}
 
-            // Buttons aktualisieren
-            document.getElementById('prev-card').disabled = currentCardIndex === 1;
-            document.getElementById('next-card').textContent = currentCardIndex === totalCards ? 'Abschließen ✓' : 'Weiter →';
+// UserCode aus localStorage holen
+function getUserCode() {
+    return localStorage.getItem('userCode') || 'anonymous';
+}
 
-            // Dots aktualisieren
-            const dots = document.querySelectorAll('.dot');
-            dots.forEach((dot, index) => {
-                dot.classList.remove('active');
-                if (viewedCards.has(index + 1)) {
-                    dot.classList.add('completed');
-                }
-            });
-            dots[currentCardIndex - 1].classList.add('active');
+// Seitenbesuch tracken
+function trackPageVisit(pageName) {
+    const sessionId = getSessionId();
+    const userCode = getUserCode();
+    
+    firebase.database().ref('pageVisits/' + sessionId + '/' + pageName).set({
+        userCode: userCode,
+        timestamp: Date.now(),
+        page: pageName
+    });
+    
+    console.log('Page visit tracked:', pageName);
+}
 
-            // Karte als angesehen markieren
-            viewedCards.add(currentCardIndex);
+// Quiz-Antwort tracken
+function trackQuizAnswer(articleId, questionNum, isCorrect) {
+    const sessionId = getSessionId();
+    const userCode = getUserCode();
+    
+    const answerData = {
+        userCode: userCode,
+        timestamp: Date.now(),
+        correct: isCorrect
+    };
+    
+    firebase.database().ref('quizAnswers/' + articleId + '/' + sessionId + '/q' + questionNum).set(answerData);
+    
+    console.log('Quiz answer tracked:', articleId, questionNum, isCorrect);
+}
 
-            // Wenn alle Karten gesehen wurden, zweite Aktivität freischalten
-            if (viewedCards.size === totalCards) {
-                unlockTrueFalseSection();
-            }
+// Artikel als abgeschlossen markieren
+function markArticleComplete(articleId) {
+    const sessionId = getSessionId();
+    const userCode = getUserCode();
+    
+    const completionData = {
+        userCode: userCode,
+        timestamp: Date.now(),
+        article: articleId,
+        completed: true
+    };
+    
+    // In completions speichern
+    firebase.database().ref('completions/' + sessionId + '/' + articleId).set(completionData);
+    
+    // In articleProgress speichern
+    firebase.database().ref('articleProgress/' + sessionId + '/' + articleId).set({
+        completed: true,
+        timestamp: Date.now()
+    });
+    
+    console.log('Article completion tracked:', articleId);
+}
+
+// Aktivitäts-Fortschritt speichern
+function trackActivityProgress(articleId, activityType, completed) {
+    const sessionId = getSessionId();
+    const userCode = getUserCode();
+    
+    firebase.database().ref('progress/' + sessionId + '/' + articleId + '/' + activityType).set({
+        userCode: userCode,
+        completed: completed,
+        timestamp: Date.now()
+    });
+    
+    console.log('Activity progress tracked:', articleId, activityType, completed);
+}
+
+// === KARTEN-AKTIVITÄT ===
+let currentCardIndex = 1;
+const totalCards = 5;
+const viewedCards = new Set([1]); // Erste Karte ist bereits sichtbar
+
+function updateCardDisplay() {
+    document.querySelectorAll('.info-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    document.querySelector(`[data-card="${currentCardIndex}"]`).classList.add('active');
+    document.getElementById('current-card').textContent = currentCardIndex;
+
+    // Buttons aktualisieren
+    document.getElementById('prev-card').disabled = currentCardIndex === 1;
+    document.getElementById('next-card').textContent = currentCardIndex === totalCards ? 'Abschließen ✓' : 'Weiter →';
+
+    // Dots aktualisieren
+    const dots = document.querySelectorAll('.dot');
+    dots.forEach((dot, index) => {
+        dot.classList.remove('active');
+        if (viewedCards.has(index + 1)) {
+            dot.classList.add('completed');
         }
+    });
+    dots[currentCardIndex - 1].classList.add('active');
 
-        document.getElementById('prev-card').addEventListener('click', () => {
-            if (currentCardIndex > 1) {
-                currentCardIndex--;
-                updateCardDisplay();
-            }
-        });
+    // Karte als angesehen markieren
+    viewedCards.add(currentCardIndex);
 
-        document.getElementById('next-card').addEventListener('click', () => {
-            if (currentCardIndex < totalCards) {
-                currentCardIndex++;
-                updateCardDisplay();
-            } else if (currentCardIndex === totalCards) {
-                // Alle Karten durchgeklickt
-                unlockTrueFalseSection();
-                document.getElementById('true-false-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        });
+    // Wenn alle Karten gesehen wurden, zweite Aktivität freischalten
+    if (viewedCards.size === totalCards) {
+        unlockTrueFalseSection();
+        trackActivityProgress('artikel1', 'cards', true);
+    }
+}
 
-        function unlockTrueFalseSection() {
-            document.getElementById('true-false-section').classList.add('unlocked');
-        }
+document.getElementById('prev-card').addEventListener('click', () => {
+    if (currentCardIndex > 1) {
+        currentCardIndex--;
+        updateCardDisplay();
+    }
+});
 
-        // === RICHTIG ODER FALSCH AKTIVITÄT ===
-        let answeredStatements = new Set();
-        const totalStatements = 4;
+document.getElementById('next-card').addEventListener('click', () => {
+    if (currentCardIndex < totalCards) {
+        currentCardIndex++;
+        updateCardDisplay();
+    } else if (currentCardIndex === totalCards) {
+        // Alle Karten durchgeklickt
+        unlockTrueFalseSection();
+        trackActivityProgress('artikel1', 'cards', true);
+        document.getElementById('true-false-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+});
 
-        document.querySelectorAll('.statement-card').forEach(card => {
-            const buttons = card.querySelectorAll('.tf-btn');
-            const statementNum = card.dataset.statement;
-            const isCorrect = card.dataset.correct === 'true';
+function unlockTrueFalseSection() {
+    document.getElementById('true-false-section').classList.add('unlocked');
+}
 
-            buttons.forEach(button => {
-                button.addEventListener('click', function() {
-                    if (answeredStatements.has(statementNum)) return;
+// === RICHTIG ODER FALSCH AKTIVITÄT ===
+let answeredStatements = new Set();
+const totalStatements = 4;
 
-                    const userAnswer = this.dataset.answer === 'true';
-                    const feedback = card.querySelector('.statement-feedback');
-                    const answerCorrect = userAnswer === isCorrect;
+document.querySelectorAll('.statement-card').forEach(card => {
+    const buttons = card.querySelectorAll('.tf-btn');
+    const statementNum = card.dataset.statement;
+    const isCorrect = card.dataset.correct === 'true';
 
-                    buttons.forEach(btn => btn.disabled = true);
-                    
-                    if (answerCorrect) {
-                        this.classList.add('correct');
-                        feedback.className = 'statement-feedback correct show';
-                        feedback.textContent = '✓ Richtig! Das entspricht den Aussagen im Artikel.';
-                    } else {
-                        this.classList.add('incorrect');
-                        buttons.forEach(btn => {
-                            if ((btn.dataset.answer === 'true') === isCorrect) {
-                                btn.classList.add('correct');
-                            }
-                        });
-                        feedback.className = 'statement-feedback incorrect show';
-                        feedback.textContent = '✗ Leider falsch. Die richtige Antwort wurde markiert.';
-                    }
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            if (answeredStatements.has(statementNum)) return;
 
-                    answeredStatements.add(statementNum);
-                    card.classList.add('answered');
-                    updateTFProgress();
+            const userAnswer = this.dataset.answer === 'true';
+            const feedback = card.querySelector('.statement-feedback');
+            const answerCorrect = userAnswer === isCorrect;
 
-                    if (answeredStatements.size === totalStatements) {
-                        unlockQuiz();
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (answerCorrect) {
+                this.classList.add('correct');
+                feedback.className = 'statement-feedback correct show';
+                feedback.textContent = '✓ Richtig! Das entspricht den Aussagen im Artikel.';
+            } else {
+                this.classList.add('incorrect');
+                buttons.forEach(btn => {
+                    if ((btn.dataset.answer === 'true') === isCorrect) {
+                        btn.classList.add('correct');
                     }
                 });
-            });
-        });
-
-        function updateTFProgress() {
-            document.getElementById('tf-progress').textContent = `${answeredStatements.size} von ${totalStatements} Aussagen beantwortet`;
-        }
-
-        function unlockQuiz() {
-            setTimeout(() => {
-                const quizSection = document.getElementById('quiz-section');
-                quizSection.classList.remove('locked');
-                quizSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                
-                // Badge anzeigen
-                const badge = document.createElement('div');
-                badge.className = 'unlock-badge';
-                badge.textContent = '🔓 Quiz freigeschaltet!';
-                badge.style.marginTop = '20px';
-                document.getElementById('true-false-section').appendChild(badge);
-            }, 1000);
-        }
-
-        // === QUIZ ===
-        let currentQuestion = 1;
-        let answeredQuestions = new Set();
-        const totalQuestions = 6;
-
-        document.querySelectorAll('.option').forEach(option => {
-            option.addEventListener('click', function() {
-                const question = this.closest('.question');
-                const questionNum = question.dataset.question;
-                const options = question.querySelectorAll('.option');
-                const feedback = question.querySelector('.feedback');
-                const nextButton = question.querySelector('.next-button');
-                
-                if (answeredQuestions.has(questionNum)) return;
-                
-                options.forEach(opt => opt.classList.remove('selected'));
-                this.classList.add('selected');
-                
-                const isCorrect = this.dataset.answer === 'correct';
-                
-                setTimeout(() => {
-                    if (isCorrect) {
-                        this.classList.add('correct');
-                        feedback.className = 'feedback correct show';
-                        feedback.textContent = '✓ Richtig! ' + getCorrectFeedback(questionNum);
-                    } else {
-                        this.classList.add('incorrect');
-                        options.forEach(opt => {
-                            if (opt.dataset.answer === 'correct') {
-                                opt.classList.add('correct');
-                            }
-                        });
-                        feedback.className = 'feedback incorrect show';
-                        feedback.textContent = '✗ Nicht ganz. ' + getCorrectFeedback(questionNum);
-                    }
-                    
-                    question.classList.add('answered');
-                    answeredQuestions.add(questionNum);
-                    nextButton.classList.add('show');
-                    updateProgress();
-                    
-                    trackQuizAnswer('artikel1', questionNum, isCorrect);
-                }, 300);
-            });
-        });
-
-        function showNextQuestion() {
-            const currentQ = document.querySelector(`[data-question="${currentQuestion}"]`);
-            currentQ.classList.remove('active');
-            
-            currentQuestion++;
-            
-            if (currentQuestion <= totalQuestions) {
-                const nextQ = document.querySelector(`[data-question="${currentQuestion}"]`);
-                nextQ.classList.add('active');
-            } else {
-                document.getElementById('completion-message').classList.add('show');
-                markArticleComplete('artikel1');
+                feedback.className = 'statement-feedback incorrect show';
+                feedback.textContent = '✗ Leider falsch. Die richtige Antwort wurde markiert.';
             }
-        }
 
-        function updateProgress() {
-            const progress = (answeredQuestions.size / totalQuestions) * 100;
-            document.getElementById('progress-fill').style.width = progress + '%';
-            document.getElementById('quiz-progress').textContent = `${answeredQuestions.size}/${totalQuestions}`;
-        }
+            answeredStatements.add(statementNum);
+            card.classList.add('answered');
+            updateTFProgress();
 
-        function getCorrectFeedback(questionNum) {
-            const feedbacks = {
-                '1': 'Diese drei Steuerformen greifen an unterschiedlichen Punkten: bei der Entstehung, während des Besitzes und bei der Weitergabe von Reichtum.',
-                '2': 'In den 1990er Jahren war dieser Anteil mit 4,8 Rappen dreimal so gross.',
-                '3': 'Die Ökonomen argumentieren, dass moderate Steuersätze zu weniger Abwanderung und höheren tatsächlichen Einnahmen führen würden.',
-                '4': 'Die Schweiz ist international einzigartig mit ihrer funktionierenden Vermögenssteuer, die 2024 rund 11 Milliarden Franken einbrachte.',
-                '5': 'Seit den 1990er Jahren haben viele Kantone direkte Nachkommen von der Erbschaftssteuer befreit, was zu diesen Problemen führt.',
-                '6': 'Mit dieser Summe wäre laut Artikel die 13. AHV-Rente fast finanziert.'
-            };
-            return feedbacks[questionNum] || '';
-        }
+            // Track True/False Answer
+            trackQuizAnswer('artikel1_tf', statementNum, answerCorrect);
 
-        // Firebase-Funktionen (Platzhalter)
-        function trackQuizAnswer(page, question, correct) {
-            // Firebase tracking code
-            console.log('Quiz answer tracked:', page, question, correct);
-        }
-
-        function markArticleComplete(page) {
-            // Firebase tracking code
-            console.log('Article completed:', page);
-        }
-
-        // Beim Laden Seitenbesuch tracken
-        window.addEventListener('load', () => {
-            console.log('Page visited: artikel1');
+            if (answeredStatements.size === totalStatements) {
+                unlockQuiz();
+                trackActivityProgress('artikel1', 'trueFalse', true);
+            }
         });
+    });
+});
+
+function updateTFProgress() {
+    document.getElementById('tf-progress').textContent = `${answeredStatements.size} von ${totalStatements} Aussagen beantwortet`;
+}
+
+function unlockQuiz() {
+    setTimeout(() => {
+        const quizSection = document.getElementById('quiz-section');
+        quizSection.classList.remove('locked');
+        quizSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        // Badge anzeigen
+        const badge = document.createElement('div');
+        badge.className = 'unlock-badge';
+        badge.textContent = '🔓 Quiz freigeschaltet!';
+        badge.style.marginTop = '20px';
+        document.getElementById('true-false-section').appendChild(badge);
+    }, 1000);
+}
+
+// === QUIZ ===
+let currentQuestion = 1;
+let answeredQuestions = new Set();
+const totalQuestions = 6;
+
+document.querySelectorAll('.option').forEach(option => {
+    option.addEventListener('click', function() {
+        const question = this.closest('.question');
+        const questionNum = question.dataset.question;
+        const options = question.querySelectorAll('.option');
+        const feedback = question.querySelector('.feedback');
+        const nextButton = question.querySelector('.next-button');
+        
+        if (answeredQuestions.has(questionNum)) return;
+        
+        options.forEach(opt => opt.classList.remove('selected'));
+        this.classList.add('selected');
+        
+        const isCorrect = this.dataset.answer === 'correct';
+        
+        setTimeout(() => {
+            if (isCorrect) {
+                this.classList.add('correct');
+                feedback.className = 'feedback correct show';
+                feedback.textContent = '✓ Richtig! ' + getCorrectFeedback(questionNum);
+            } else {
+                this.classList.add('incorrect');
+                options.forEach(opt => {
+                    if (opt.dataset.answer === 'correct') {
+                        opt.classList.add('correct');
+                    }
+                });
+                feedback.className = 'feedback incorrect show';
+                feedback.textContent = '✗ Nicht ganz. ' + getCorrectFeedback(questionNum);
+            }
+            
+            question.classList.add('answered');
+            answeredQuestions.add(questionNum);
+            nextButton.classList.add('show');
+            updateProgress();
+            
+            trackQuizAnswer('artikel1', questionNum, isCorrect);
+        }, 300);
+    });
+});
+
+function showNextQuestion() {
+    const currentQ = document.querySelector(`[data-question="${currentQuestion}"]`);
+    currentQ.classList.remove('active');
+    
+    currentQuestion++;
+    
+    if (currentQuestion <= totalQuestions) {
+        const nextQ = document.querySelector(`[data-question="${currentQuestion}"]`);
+        nextQ.classList.add('active');
+    } else {
+        document.getElementById('completion-message').classList.add('show');
+        trackActivityProgress('artikel1', 'quiz', true);
+        markArticleComplete('artikel1');
+    }
+}
+
+function updateProgress() {
+    const progress = (answeredQuestions.size / totalQuestions) * 100;
+    document.getElementById('progress-fill').style.width = progress + '%';
+    document.getElementById('quiz-progress').textContent = `${answeredQuestions.size}/${totalQuestions}`;
+}
+
+function getCorrectFeedback(questionNum) {
+    const feedbacks = {
+        '1': 'Diese drei Steuerformen greifen an unterschiedlichen Punkten: bei der Entstehung, während des Besitzes und bei der Weitergabe von Reichtum.',
+        '2': 'In den 1990er Jahren war dieser Anteil mit 4,8 Rappen dreimal so gross.',
+        '3': 'Die Ökonomen argumentieren, dass moderate Steuersätze zu weniger Abwanderung und höheren tatsächlichen Einnahmen führen würden.',
+        '4': 'Die Schweiz ist international einzigartig mit ihrer funktionierenden Vermögenssteuer, die 2024 rund 11 Milliarden Franken einbrachte.',
+        '5': 'Seit den 1990er Jahren haben viele Kantone direkte Nachkommen von der Erbschaftssteuer befreit, was zu diesen Problemen führt.',
+        '6': 'Mit dieser Summe wäre laut Artikel die 13. AHV-Rente fast finanziert.'
+    };
+    return feedbacks[questionNum] || '';
+}
+
+// Beim Laden der Seite: Seitenbesuch tracken
+window.addEventListener('load', () => {
+    trackPageVisit('artikel1');
+});
     </script>
 </body>
 </html>
