@@ -410,6 +410,7 @@
 
     <script>
         const responses = {};
+        let surveyAlreadySubmitted = false;
 
         // Event Listeners für alle Emoji-Optionen
         document.querySelectorAll('.emoji-option').forEach(option => {
@@ -430,6 +431,9 @@
                 
                 // Prüfe, ob alle Fragen beantwortet wurden
                 updateSubmitButton();
+                
+                // Verstecke Erfolgsmeldung falls sichtbar
+                document.getElementById('completion-message').classList.remove('show');
             });
         });
 
@@ -439,15 +443,62 @@
             
             const submitButton = document.getElementById('submitButton');
             submitButton.disabled = !allAnswered;
+            
+            // Button-Text anpassen je nach Status
+            if (surveyAlreadySubmitted && allAnswered) {
+                submitButton.textContent = 'Änderungen speichern';
+            } else if (allAnswered) {
+                submitButton.textContent = 'Umfrage absenden';
+            }
+        }
+
+        function loadExistingSurvey() {
+            const userCode = localStorage.getItem('userCode');
+            if (!userCode) return;
+
+            const database = firebase.database();
+            database.ref(`users/${userCode}/survey`).once('value').then((snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    console.log('✓ Bestehende Umfrage geladen:', data);
+                    surveyAlreadySubmitted = true;
+                    
+                    // Setze alle Antworten
+                    const questions = ['quality', 'clarity', 'informative', 'difficulty', 'interactivity', 'recommendation'];
+                    questions.forEach(question => {
+                        if (data[question]) {
+                            responses[question] = data[question];
+                            
+                            // Markiere die entsprechende Option visuell
+                            const option = document.querySelector(`[data-question="${question}"] [data-value="${data[question]}"]`);
+                            if (option) {
+                                option.classList.add('selected');
+                            }
+                        }
+                    });
+                    
+                    // Update Button
+                    updateSubmitButton();
+                    
+                    // Zeige Hinweis
+                    const submitSection = document.querySelector('.submit-section p');
+                    submitSection.textContent = 'Sie können Ihre Antworten jederzeit anpassen und erneut speichern.';
+                    submitSection.style.color = '#5eb9b4';
+                    submitSection.style.fontWeight = '600';
+                }
+            }).catch((error) => {
+                console.error('Fehler beim Laden der Umfrage:', error);
+            });
         }
 
         function submitSurvey() {
             const submitButton = document.getElementById('submitButton');
+            const originalText = submitButton.textContent;
             submitButton.disabled = true;
-            submitButton.textContent = 'Wird gesendet...';
+            submitButton.textContent = 'Wird gespeichert...';
             
             // Hole User Code
-           const userCode = localStorage.getItem('userCode');
+            const userCode = localStorage.getItem('userCode');
             if (!userCode) {
                 alert('Fehler: Kein Benutzer gefunden. Bitte melden Sie sich erneut an.');
                 window.location.href = 'login.html';
@@ -465,40 +516,59 @@
                 difficulty: responses.difficulty,
                 interactivity: responses.interactivity,
                 recommendation: responses.recommendation,
-                timestamp: timestamp
+                timestamp: timestamp,
+                lastUpdated: timestamp
             }).then(() => {
+                console.log('✓ Umfrage erfolgreich gespeichert');
+                surveyAlreadySubmitted = true;
+                
                 // Zeige Erfolgsmeldung
-                document.getElementById('completion-message').classList.add('show');
+                const completionMsg = document.getElementById('completion-message');
+                if (originalText === 'Änderungen speichern') {
+                    completionMsg.querySelector('h3').textContent = '✓ Änderungen gespeichert!';
+                    completionMsg.querySelector('p').textContent = 'Ihre aktualisierten Antworten wurden erfolgreich gespeichert.';
+                } else {
+                    completionMsg.querySelector('h3').textContent = '🎉 Vielen Dank!';
+                    completionMsg.querySelector('p').textContent = 'Ihre Bewertungen wurden erfolgreich gespeichert.';
+                }
+                completionMsg.classList.add('show');
                 
                 // Scroll zur Erfolgsmeldung
-                document.getElementById('completion-message').scrollIntoView({ 
+                completionMsg.scrollIntoView({ 
                     behavior: 'smooth',
                     block: 'center'
                 });
                 
-                // Speichere auch lokal
-                localStorage.setItem('survey_completed', 'true');
+                // Update Button
+                submitButton.disabled = false;
+                submitButton.textContent = 'Änderungen speichern';
                 
-                // Tracke Seitenabschluss
-                if (typeof trackPageCompletion === 'function') {
+                // Update Hinweistext
+                const submitSection = document.querySelector('.submit-section p');
+                submitSection.textContent = 'Sie können Ihre Antworten jederzeit anpassen und erneut speichern.';
+                submitSection.style.color = '#5eb9b4';
+                submitSection.style.fontWeight = '600';
+                
+                // Verstecke Erfolgsmeldung nach 3 Sekunden
+                setTimeout(() => {
+                    completionMsg.classList.remove('show');
+                }, 3000);
+                
+                // Tracke Seitenabschluss nur beim ersten Mal
+                if (!surveyAlreadySubmitted && typeof trackPageCompletion === 'function') {
                     trackPageCompletion('umfrage');
                 }
             }).catch((error) => {
                 console.error('Fehler beim Speichern:', error);
                 alert('Fehler beim Speichern der Umfrage. Bitte versuchen Sie es erneut.');
                 submitButton.disabled = false;
-                submitButton.textContent = 'Umfrage absenden';
+                submitButton.textContent = originalText;
             });
         }
 
-        // Beim Laden prüfen, ob schon ausgefüllt
+        // Beim Laden: bestehende Antworten laden
         window.addEventListener('load', () => {
-            const surveyCompleted = localStorage.getItem('survey_completed');
-            if (surveyCompleted === 'true') {
-                document.getElementById('completion-message').classList.add('show');
-                document.getElementById('submitButton').disabled = true;
-                document.getElementById('submitButton').textContent = 'Bereits abgesendet';
-            }
+            loadExistingSurvey();
             
             // Seitenbesuch tracken
             if (typeof trackPageVisit === 'function') {
