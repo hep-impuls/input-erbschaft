@@ -694,7 +694,12 @@
             
             modules.forEach(module => {
                 const isCompleted = myData.completions && myData.completions[module.key];
-                const isVisited = myData.visits && myData.visits[module.key];
+
+// Als "besucht" gilt nur, wenn tatsächlich Zeit verbracht wurde (mindestens 10 Sekunden)
+const hasTimeSpent = myData.timeSpent && 
+                    myData.timeSpent[module.key] && 
+                    (myData.timeSpent[module.key].seconds || 0) >= 10;
+const isVisited = hasTimeSpent;
                 
                 // Quiz-Details holen
                 let quizInfo = '';
