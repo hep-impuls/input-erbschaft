@@ -250,6 +250,7 @@
             padding: 20px;
             background: white;
             border-radius: 10px;
+            min-height: 80px;
         }
 
         .canton-chip {
@@ -275,7 +276,6 @@
 
         .canton-chip.placed {
             background: #4caf50;
-            cursor: default;
         }
 
         .ranking-drops {
@@ -956,8 +956,8 @@
             <!-- === SCHRITT 1: KANTONS-RANKING === -->
             <div class="interactive-section" id="ranking-section">
                 <h2>📊 Schritt 1: Kantons-Ranking</h2>
-                <p style="text-align: center; margin-bottom: 20px;">Ordnen Sie die Kantone nach ihrer Multimillionärs-Dichte (pro 10'000 Einwohner). Ziehen Sie die Kantone von oben (höchste Dichte) nach unten.</p>
-                <div class="activity-progress" id="ranking-progress">0 von 4 Kantonen zugeordnet</div>
+                <p style="text-align: center; margin-bottom: 20px;">Ordnen Sie die Kantone nach ihrer Multimillionärs-Dichte (pro 10'000 Einwohner). Ziehen Sie die Kantone von oben (höchste Dichte) nach unten. Sie können Ihre Auswahl jederzeit ändern, indem Sie die Chips wieder verschieben.</p>
+                <div class="activity-progress" id="ranking-progress">0 von 3 Kantonen zugeordnet</div>
                 
                 <div class="ranking-game">
                     <div class="canton-pool" id="canton-pool">
@@ -1309,8 +1309,7 @@ function getRandomCantons() {
     return [
         { canton: 'nidwalden', name: 'Nidwalden', rank: 1 },
         schwyOrZug,
-        { canton: 'genf', name: 'Genf', rank: 3 },
-        { canton: 'aargau', name: 'Aargau', rank: 4 }
+        { canton: 'aargau', name: 'Aargau', rank: 3 }
     ];
 }
 
@@ -1326,7 +1325,7 @@ function shuffleArray(array) {
 
 // Kantone dynamisch laden
 let selectedCantons = [];
-const totalCantons = 4;
+const totalCantons = 3;
 
 function loadCantons() {
     selectedCantons = getRandomCantons();
@@ -1364,7 +1363,7 @@ function loadDropZones() {
     const container = document.getElementById('ranking-drops');
     container.innerHTML = '';
     
-    const emojis = ['🥇', '🥈', '🥉', '4️⃣'];
+    const emojis = ['🥇', '🥈', '🥉'];
     
     for (let i = 1; i <= totalCantons; i++) {
         const zone = document.createElement('div');
@@ -1392,16 +1391,59 @@ function loadDropZones() {
             
             if (draggedElement) {
                 const content = this.querySelector('.drop-zone-content');
-                const clone = draggedElement.cloneNode(true);
-                clone.draggable = false;
-                clone.style.cursor = 'default';
-                content.appendChild(clone);
-                
-                draggedElement.classList.add('placed');
-                draggedElement.draggable = false;
-                
                 const canton = draggedElement.dataset.canton;
                 const rank = this.dataset.rank;
+                
+                // Entferne vorhandenen Chip aus dieser Zone (falls vorhanden)
+                const existingChip = content.querySelector('.canton-chip');
+                if (existingChip) {
+                    const existingCanton = existingChip.dataset.canton;
+                    // Setze den alten Chip zurück in den Pool
+                    delete placedCantons[existingCanton];
+                    const poolChip = document.querySelector(`#canton-pool .canton-chip[data-canton="${existingCanton}"]`);
+                    if (poolChip) {
+                        poolChip.classList.remove('placed');
+                        poolChip.draggable = true;
+                        poolChip.style.cursor = 'move';
+                    }
+                    existingChip.remove();
+                }
+                
+                // Wenn Chip aus einer anderen Drop-Zone kommt, entferne alten Eintrag
+                if (draggedElement.parentElement.classList.contains('drop-zone-content')) {
+                    delete placedCantons[canton];
+                }
+                
+                // Erstelle neuen Chip in der Drop-Zone
+                const clone = document.createElement('div');
+                clone.className = 'canton-chip placed';
+                clone.draggable = true;
+                clone.dataset.canton = canton;
+                clone.dataset.rank = draggedElement.dataset.rank;
+                clone.textContent = draggedElement.textContent;
+                clone.style.cursor = 'move';
+                
+                // Drag-Events für platzierten Chip
+                clone.addEventListener('dragstart', function(e) {
+                    draggedElement = this;
+                    this.classList.add('dragging');
+                });
+                
+                clone.addEventListener('dragend', function() {
+                    this.classList.remove('dragging');
+                });
+                
+                content.appendChild(clone);
+                
+                // Markiere Original-Chip im Pool als platziert
+                const poolChip = document.querySelector(`#canton-pool .canton-chip[data-canton="${canton}"]`);
+                if (poolChip) {
+                    poolChip.classList.add('placed');
+                    poolChip.draggable = false;
+                    poolChip.style.cursor = 'default';
+                }
+                
+                // Update tracking
                 placedCantons[canton] = rank;
                 
                 updateRankingProgress();
@@ -1584,9 +1626,22 @@ function restoreUIState() {
                 const content = dropZone.querySelector('.drop-zone-content');
                 const clone = document.createElement('div');
                 clone.className = 'canton-chip placed';
+                clone.dataset.canton = canton;
+                clone.dataset.rank = cantonData.rank;
                 clone.textContent = cantonData.name;
-                clone.draggable = false;
-                clone.style.cursor = 'default';
+                clone.draggable = true;
+                clone.style.cursor = 'move';
+                
+                // Drag-Events für wiederhergestellten Chip
+                clone.addEventListener('dragstart', function(e) {
+                    draggedElement = this;
+                    this.classList.add('dragging');
+                });
+                
+                clone.addEventListener('dragend', function() {
+                    this.classList.remove('dragging');
+                });
+                
                 content.appendChild(clone);
             }
         });
@@ -1778,7 +1833,7 @@ function resetRanking() {
         zone.querySelector('.drop-zone-content').innerHTML = '';
     });
     
-    document.querySelectorAll('.canton-chip').forEach(chip => {
+    document.querySelectorAll('#canton-pool .canton-chip').forEach(chip => {
         chip.classList.remove('placed');
         chip.draggable = true;
         chip.style.cursor = 'move';
