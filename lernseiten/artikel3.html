@@ -78,6 +78,7 @@
             justify-content: space-between;
             align-items: center;
             transition: all 0.3s;
+            user-select: none;
         }
 
         .summary-header:hover {
@@ -110,6 +111,61 @@
         }
 
         .summary-inner {
+            padding: 30px;
+        }
+
+        /* === ACCORDION SYSTEM FÜR ALLE SEKTIONEN === */
+        .accordion-section {
+            margin: 40px 0;
+            border: 3px solid #5eb9b4;
+            border-radius: 10px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .accordion-header {
+            background: linear-gradient(135deg, #003876, #5eb9b4);
+            color: white;
+            padding: 25px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            user-select: none;
+        }
+
+        .accordion-header:hover {
+            background: linear-gradient(135deg, #002855, #4a9a95);
+        }
+
+        .accordion-header h2 {
+            font-size: 1.8em;
+            margin: 0;
+        }
+
+        .accordion-toggle {
+            font-size: 2em;
+            transition: transform 0.3s;
+            font-weight: bold;
+        }
+
+        .accordion-section.open .accordion-toggle {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+            background: #f8f9fa;
+        }
+
+        .accordion-section.open .accordion-content {
+            max-height: 3500px;
+        }
+
+        .accordion-inner {
             padding: 30px;
         }
 
@@ -148,20 +204,6 @@
         }
 
         /* === INTERAKTIVE SEKTIONEN === */
-        .interactive-section {
-            margin: 40px 0;
-            padding: 30px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
-
-        .interactive-section h2 {
-            color: #003876;
-            margin-bottom: 20px;
-            text-align: center;
-            font-size: 1.8em;
-        }
-
         .section-intro {
             text-align: center;
             margin-bottom: 30px;
@@ -819,61 +861,66 @@
                 </div>
             </div>
 
-            <!-- Progress Tracker entfernt - Tracking erfolgt automatisch im Hintergrund -->
-
             <!-- === 1. ZEITSTRAHL === -->
-            <div class="interactive-section">
-                <h2>📅 Interaktiv 1: Abschaffungs-Zeitstrahl</h2>
-                <p class="section-intro">Sehen Sie, wie Länder über 42 Jahre hinweg die Erbschaftssteuer abschafften</p>
+            <div class="accordion-section" id="timeline-accordion">
+                <div class="accordion-header" onclick="toggleAccordion('timeline-accordion')">
+                    <h2>📅 Interaktiv 1: Abschaffungs-Zeitstrahl</h2>
+                    <span class="accordion-toggle">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-inner">
+                        <p class="section-intro">Sehen Sie, wie Länder über 42 Jahre hinweg die Erbschaftssteuer abschafften</p>
 
-                <div class="timeline-visual">
-                    <div class="timeline-line"></div>
-                    <div class="timeline-items">
-                        <div class="timeline-item left">
-                            <div class="timeline-year">1971</div>
-                            <div class="timeline-card">
-                                <h4>🇨🇦 Kanada</h4>
-                                <p>Als eines der ersten Industrieländer schafft Kanada die Erbschaftssteuer ab und führt stattdessen eine Kapitalgewinnsteuer ein.</p>
-                            </div>
-                        </div>
+                        <div class="timeline-visual">
+                            <div class="timeline-line"></div>
+                            <div class="timeline-items">
+                                <div class="timeline-item left">
+                                    <div class="timeline-year">1971</div>
+                                    <div class="timeline-card">
+                                        <h4>🇨🇦 Kanada</h4>
+                                        <p>Als eines der ersten Industrieländer schafft Kanada die Erbschaftssteuer ab und führt stattdessen eine Kapitalgewinnsteuer ein.</p>
+                                    </div>
+                                </div>
 
-                        <div class="timeline-item right">
-                            <div class="timeline-year">1979</div>
-                            <div class="timeline-card">
-                                <h4>🇦🇺 Australien</h4>
-                                <p>Australien folgt dem kanadischen Beispiel und schafft die Erbschaftssteuer vollständig ab.</p>
-                            </div>
-                        </div>
+                                <div class="timeline-item right">
+                                    <div class="timeline-year">1979</div>
+                                    <div class="timeline-card">
+                                        <h4>🇦🇺 Australien</h4>
+                                        <p>Australien folgt dem kanadischen Beispiel und schafft die Erbschaftssteuer vollständig ab.</p>
+                                    </div>
+                                </div>
 
-                        <div class="timeline-item left">
-                            <div class="timeline-year">2001</div>
-                            <div class="timeline-card">
-                                <h4>🇳🇿 Neuseeland</h4>
-                                <p>Nach jahrzehntelanger Debatte streicht Neuseeland die Erbschaftssteuer komplett.</p>
-                            </div>
-                        </div>
+                                <div class="timeline-item left">
+                                    <div class="timeline-year">2001</div>
+                                    <div class="timeline-card">
+                                        <h4>🇳🇿 Neuseeland</h4>
+                                        <p>Nach jahrzehntelanger Debatte streicht Neuseeland die Erbschaftssteuer komplett.</p>
+                                    </div>
+                                </div>
 
-                        <div class="timeline-item right">
-                            <div class="timeline-year">2004</div>
-                            <div class="timeline-card">
-                                <h4>🇸🇪 Schweden</h4>
-                                <p>Trotz sozialdemokratischer Regierung: Abschaffung, weil Ausnahmen die Mittelklasse unfair belasteten.</p>
-                            </div>
-                        </div>
+                                <div class="timeline-item right">
+                                    <div class="timeline-year">2004</div>
+                                    <div class="timeline-card">
+                                        <h4>🇸🇪 Schweden</h4>
+                                        <p>Trotz sozialdemokratischer Regierung: Abschaffung, weil Ausnahmen die Mittelklasse unfair belasteten.</p>
+                                    </div>
+                                </div>
 
-                        <div class="timeline-item left">
-                            <div class="timeline-year">2008</div>
-                            <div class="timeline-card">
-                                <h4>🇦🇹 Österreich</h4>
-                                <p>Das Land, das 1759 eine der ersten Erbschaftssteuern einführte, schafft sie nach 249 Jahren ab.</p>
-                            </div>
-                        </div>
+                                <div class="timeline-item left">
+                                    <div class="timeline-year">2008</div>
+                                    <div class="timeline-card">
+                                        <h4>🇦🇹 Österreich</h4>
+                                        <p>Das Land, das 1759 eine der ersten Erbschaftssteuern einführte, schafft sie nach 249 Jahren ab.</p>
+                                    </div>
+                                </div>
 
-                        <div class="timeline-item right">
-                            <div class="timeline-year">2013</div>
-                            <div class="timeline-card">
-                                <h4>🇳🇴 Norwegen</h4>
-                                <p>Selbst der Wohlfahrtsstaat Norwegen streicht die Erbschaftssteuer wegen Kapitalmobilität.</p>
+                                <div class="timeline-item right">
+                                    <div class="timeline-year">2013</div>
+                                    <div class="timeline-card">
+                                        <h4>🇳🇴 Norwegen</h4>
+                                        <p>Selbst der Wohlfahrtsstaat Norwegen streicht die Erbschaftssteuer wegen Kapitalmobilität.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -881,141 +928,162 @@
             </div>
 
             <!-- === 2. MATCHING GAME === -->
-            <div class="interactive-section">
-                <h2>🎯 Interaktiv 2: Länder-Eigenschaften zuordnen</h2>
-                <p class="section-intro">Wählen Sie ein Land links und dann die passende Eigenschaft rechts</p>
+            <div class="accordion-section" id="matching-accordion">
+                <div class="accordion-header" onclick="toggleAccordion('matching-accordion')">
+                    <h2>🎯 Interaktiv 2: Länder-Eigenschaften zuordnen</h2>
+                    <span class="accordion-toggle">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-inner">
+                        <p class="section-intro">Wählen Sie ein Land links und dann die passende Eigenschaft rechts</p>
 
-                <div class="matching-game">
-                    <div class="matching-pairs">
-                        <div class="matching-column">
-                            <h3>Länder</h3>
-                            <div class="matching-items" id="matching-countries">
-                                <div class="match-card" data-match="schweden">🇸🇪 Schweden</div>
-                                <div class="match-card" data-match="schweiz">🇨🇭 Schweiz</div>
-                                <div class="match-card" data-match="oesterreich">🇦🇹 Österreich</div>
-                                <div class="match-card" data-match="usa">🇺🇸 USA</div>
-                            </div>
-                        </div>
+                        <div class="matching-game">
+                            <div class="matching-pairs">
+                                <div class="matching-column">
+                                    <h3>Länder</h3>
+                                    <div class="matching-items" id="matching-countries">
+                                        <div class="match-card" data-match="schweden">🇸🇪 Schweden</div>
+                                        <div class="match-card" data-match="schweiz">🇨🇭 Schweiz</div>
+                                        <div class="match-card" data-match="oesterreich">🇦🇹 Österreich</div>
+                                        <div class="match-card" data-match="usa">🇺🇸 USA</div>
+                                    </div>
+                                </div>
 
-                        <div class="matching-column">
-                            <h3>Eigenschaften</h3>
-                            <div class="matching-items" id="matching-properties">
-                                <div class="match-card" data-match="schweiz">Vermögens- UND Erbschaftssteuer</div>
-                                <div class="match-card" data-match="oesterreich">Erste Erbschaftssteuer 1759</div>
-                                <div class="match-card" data-match="schweden">Abschaffung unter Sozialdemokraten</div>
-                                <div class="match-card" data-match="usa">Viele Schlupflöcher für Milliardäre</div>
+                                <div class="matching-column">
+                                    <h3>Eigenschaften</h3>
+                                    <div class="matching-items" id="matching-properties">
+                                        <div class="match-card" data-match="schweiz">Vermögens- UND Erbschaftssteuer</div>
+                                        <div class="match-card" data-match="oesterreich">Erste Erbschaftssteuer 1759</div>
+                                        <div class="match-card" data-match="schweden">Abschaffung unter Sozialdemokraten</div>
+                                        <div class="match-card" data-match="usa">Viele Schlupflöcher für Milliardäre</div>
+                                    </div>
+                                </div>
                             </div>
+
+                            <div class="matching-feedback" id="matching-feedback"></div>
                         </div>
                     </div>
-
-                    <div class="matching-feedback" id="matching-feedback"></div>
                 </div>
             </div>
 
             <!-- === 3. STATISTIK-KARTEN === -->
-            <div class="interactive-section">
-                <h2>📊 Interaktiv 3: Zahlen & Fakten</h2>
-                <p class="section-intro">Klicken Sie auf eine Karte für mehr Details</p>
+            <div class="accordion-section" id="stats-accordion">
+                <div class="accordion-header" onclick="toggleAccordion('stats-accordion')">
+                    <h2>📊 Interaktiv 3: Zahlen & Fakten</h2>
+                    <span class="accordion-toggle">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-inner">
+                        <p class="section-intro">Klicken Sie auf eine Karte für mehr Details</p>
 
-                <div class="stat-cards">
-                    <div class="stat-card" onclick="toggleStatCard(this)">
-                        <div class="stat-number">< 0.5%</div>
-                        <div class="stat-label">der OECD-Steuereinnahmen</div>
-                        <div class="stat-detail">Erbschaftssteuern tragen heute weniger als 0,5% zu den gesamten Steuereinnahmen der OECD-Länder bei – ein drastischer Rückgang seit den 1970er Jahren.</div>
-                    </div>
+                        <div class="stat-cards">
+                            <div class="stat-card" onclick="toggleStatCard(this)">
+                                <div class="stat-number">< 0.5%</div>
+                                <div class="stat-label">der OECD-Steuereinnahmen</div>
+                                <div class="stat-detail">Erbschaftssteuern tragen heute weniger als 0,5% zu den gesamten Steuereinnahmen der OECD-Länder bei – ein drastischer Rückgang seit den 1970er Jahren.</div>
+                            </div>
 
-                    <div class="stat-card" onclick="toggleStatCard(this)">
-                        <div class="stat-number">50%</div>
-                        <div class="stat-label">der Länder weltweit</div>
-                        <div class="stat-detail">Etwa die Hälfte aller Länder weltweit kennen heute noch eine Form der Erbschaftssteuer. Die andere Hälfte hat sie abgeschafft.</div>
-                    </div>
+                            <div class="stat-card" onclick="toggleStatCard(this)">
+                                <div class="stat-number">50%</div>
+                                <div class="stat-label">der Länder weltweit</div>
+                                <div class="stat-detail">Etwa die Hälfte aller Länder weltweit kennen heute noch eine Form der Erbschaftssteuer. Die andere Hälfte hat sie abgeschafft.</div>
+                            </div>
 
-                    <div class="stat-card" onclick="toggleStatCard(this)">
-                        <div class="stat-number">40-80%</div>
-                        <div class="stat-label">Spitzensteuersätze früher</div>
-                        <div class="stat-detail">Im 20. Jahrhundert lagen die Spitzensteuersätze für Erbschaften in Ländern wie Frankreich, Deutschland, Japan und den USA zwischen 40 und 80 Prozent.</div>
-                    </div>
+                            <div class="stat-card" onclick="toggleStatCard(this)">
+                                <div class="stat-number">40-80%</div>
+                                <div class="stat-label">Spitzensteuersätze früher</div>
+                                <div class="stat-detail">Im 20. Jahrhundert lagen die Spitzensteuersätze für Erbschaften in Ländern wie Frankreich, Deutschland, Japan und den USA zwischen 40 und 80 Prozent.</div>
+                            </div>
 
-                    <div class="stat-card" onclick="toggleStatCard(this)">
-                        <div class="stat-number">249</div>
-                        <div class="stat-label">Jahre in Österreich</div>
-                        <div class="stat-detail">Österreich führte 1759 eine der ersten Erbschaftssteuern ein und schaffte sie 2008 wieder ab – nach 249 Jahren.</div>
-                    </div>
+                            <div class="stat-card" onclick="toggleStatCard(this)">
+                                <div class="stat-number">249</div>
+                                <div class="stat-label">Jahre in Österreich</div>
+                                <div class="stat-detail">Österreich führte 1759 eine der ersten Erbschaftssteuern ein und schaffte sie 2008 wieder ab – nach 249 Jahren.</div>
+                            </div>
 
-                    <div class="stat-card" onclick="toggleStatCard(this)">
-                        <div class="stat-number">50 Mio.</div>
-                        <div class="stat-label">CHF Freibetrag</div>
-                        <div class="stat-detail">Die Juso-Initiative sieht einen Freibetrag von 50 Millionen Franken vor – deutlich höher als in den meisten anderen Ländern mit Erbschaftssteuern.</div>
-                    </div>
+                            <div class="stat-card" onclick="toggleStatCard(this)">
+                                <div class="stat-number">50 Mio.</div>
+                                <div class="stat-label">CHF Freibetrag</div>
+                                <div class="stat-detail">Die Juso-Initiative sieht einen Freibetrag von 50 Millionen Franken vor – deutlich höher als in den meisten anderen Ländern mit Erbschaftssteuern.</div>
+                            </div>
 
-                    <div class="stat-card" onclick="toggleStatCard(this)">
-                        <div class="stat-number">2</div>
-                        <div class="stat-label">Steuern gleichzeitig</div>
-                        <div class="stat-detail">Die Schweiz ist fast weltweit einzigartig: Sie erhebt sowohl eine Vermögenssteuer zu Lebzeiten als auch eine Erbschaftssteuer nach dem Tod.</div>
+                            <div class="stat-card" onclick="toggleStatCard(this)">
+                                <div class="stat-number">2</div>
+                                <div class="stat-label">Steuern gleichzeitig</div>
+                                <div class="stat-detail">Die Schweiz ist fast weltweit einzigartig: Sie erhebt sowohl eine Vermögenssteuer zu Lebzeiten als auch eine Erbschaftssteuer nach dem Tod.</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- === 4. MYTHOS VS REALITÄT === -->
-            <div class="interactive-section">
-                <h2>💡 Interaktiv 4: Mythos oder Realität?</h2>
-                <p class="section-intro">Testen Sie Ihr Wissen – was stimmt wirklich?</p>
+            <div class="accordion-section" id="myths-accordion">
+                <div class="accordion-header" onclick="toggleAccordion('myths-accordion')">
+                    <h2>💡 Interaktiv 4: Mythos oder Realität?</h2>
+                    <span class="accordion-toggle">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-inner">
+                        <p class="section-intro">Testen Sie Ihr Wissen – was stimmt wirklich?</p>
 
-                <div class="myth-reality">
-                    <div class="myth-cards">
-                        <!-- Mythos 1 -->
-                        <div class="myth-card">
-                            <div class="myth-statement">
-                                Erbschaftssteuern wurden historisch oft zur Kriegsfinanzierung eingeführt
-                            </div>
-                            <div class="myth-buttons">
-                                <button class="myth-btn" onclick="checkMyth(this, 'reality', 1)">✓ Realität</button>
-                                <button class="myth-btn" onclick="checkMyth(this, 'myth', 1)">✗ Mythos</button>
-                            </div>
-                            <div class="myth-explanation" id="myth-explanation-1">
-                                Österreich führte 1759 eine Erbschaftssteuer zur Finanzierung des Siebenjährigen Krieges ein, Grossbritannien 1796 für den Krieg gegen Napoleon.
-                            </div>
-                        </div>
+                        <div class="myth-reality">
+                            <div class="myth-cards">
+                                <!-- Mythos 1 -->
+                                <div class="myth-card">
+                                    <div class="myth-statement">
+                                        Erbschaftssteuern wurden historisch oft zur Kriegsfinanzierung eingeführt
+                                    </div>
+                                    <div class="myth-buttons">
+                                        <button class="myth-btn" onclick="checkMyth(this, 'reality', 1)">✓ Realität</button>
+                                        <button class="myth-btn" onclick="checkMyth(this, 'myth', 1)">✗ Mythos</button>
+                                    </div>
+                                    <div class="myth-explanation" id="myth-explanation-1">
+                                        Österreich führte 1759 eine Erbschaftssteuer zur Finanzierung des Siebenjährigen Krieges ein, Grossbritannien 1796 für den Krieg gegen Napoleon.
+                                    </div>
+                                </div>
 
-                        <!-- Mythos 2 -->
-                        <div class="myth-card">
-                            <div class="myth-statement">
-                                Die Schweiz ist das einzige Land mit Erbschaftssteuern
-                            </div>
-                            <div class="myth-buttons">
-                                <button class="myth-btn" onclick="checkMyth(this, 'reality', 2)">✓ Realität</button>
-                                <button class="myth-btn" onclick="checkMyth(this, 'myth', 2)">✗ Mythos</button>
-                            </div>
-                            <div class="myth-explanation" id="myth-explanation-2">
-                                Mythos! Etwa 50% der Länder weltweit kennen heute noch eine Form der Erbschaftssteuer. Beispiele: Frankreich, Deutschland, USA, Japan, Grossbritannien.
-                            </div>
-                        </div>
+                                <!-- Mythos 2 -->
+                                <div class="myth-card">
+                                    <div class="myth-statement">
+                                        Die Schweiz ist das einzige Land mit Erbschaftssteuern
+                                    </div>
+                                    <div class="myth-buttons">
+                                        <button class="myth-btn" onclick="checkMyth(this, 'reality', 2)">✓ Realität</button>
+                                        <button class="myth-btn" onclick="checkMyth(this, 'myth', 2)">✗ Mythos</button>
+                                    </div>
+                                    <div class="myth-explanation" id="myth-explanation-2">
+                                        Mythos! Etwa 50% der Länder weltweit kennen heute noch eine Form der Erbschaftssteuer. Beispiele: Frankreich, Deutschland, USA, Japan, Grossbritannien.
+                                    </div>
+                                </div>
 
-                        <!-- Mythos 3 -->
-                        <div class="myth-card">
-                            <div class="myth-statement">
-                                In Schweden schaffte eine sozialdemokratische Regierung die Erbschaftssteuer ab
-                            </div>
-                            <div class="myth-buttons">
-                                <button class="myth-btn" onclick="checkMyth(this, 'reality', 3)">✓ Realität</button>
-                                <button class="myth-btn" onclick="checkMyth(this, 'myth', 3)">✗ Mythos</button>
-                            </div>
-                            <div class="myth-explanation" id="myth-explanation-3">
-                                Realität! 2004 schaffte ausgerechnet eine sozialdemokratische Regierung die Steuer ab, weil Ausnahmen dazu führten, dass die Mittelklasse unfair belastet wurde.
-                            </div>
-                        </div>
+                                <!-- Mythos 3 -->
+                                <div class="myth-card">
+                                    <div class="myth-statement">
+                                        In Schweden schaffte eine sozialdemokratische Regierung die Erbschaftssteuer ab
+                                    </div>
+                                    <div class="myth-buttons">
+                                        <button class="myth-btn" onclick="checkMyth(this, 'reality', 3)">✓ Realität</button>
+                                        <button class="myth-btn" onclick="checkMyth(this, 'myth', 3)">✗ Mythos</button>
+                                    </div>
+                                    <div class="myth-explanation" id="myth-explanation-3">
+                                        Realität! 2004 schaffte ausgerechnet eine sozialdemokratische Regierung die Steuer ab, weil Ausnahmen dazu führten, dass die Mittelklasse unfair belastet wurde.
+                                    </div>
+                                </div>
 
-                        <!-- Mythos 4 -->
-                        <div class="myth-card">
-                            <div class="myth-statement">
-                                Die Juso-Initiative mit 50% ab 50 Mio. CHF ist international üblich
-                            </div>
-                            <div class="myth-buttons">
-                                <button class="myth-btn" onclick="checkMyth(this, 'reality', 4)">✓ Realität</button>
-                                <button class="myth-btn" onclick="checkMyth(this, 'myth', 4)">✗ Mythos</button>
-                            </div>
-                            <div class="myth-explanation" id="myth-explanation-4">
-                                Mythos! Laura Seelkopf bezeichnet die Kombination als «sehr ungewöhnlich» und weltweit einzigartig. Nirgendwo sonst gibt es so hohe Steuersätze bei so hohen Freibeträgen.
+                                <!-- Mythos 4 -->
+                                <div class="myth-card">
+                                    <div class="myth-statement">
+                                        Die Juso-Initiative mit 50% ab 50 Mio. CHF ist international üblich
+                                    </div>
+                                    <div class="myth-buttons">
+                                        <button class="myth-btn" onclick="checkMyth(this, 'reality', 4)">✓ Realität</button>
+                                        <button class="myth-btn" onclick="checkMyth(this, 'myth', 4)">✗ Mythos</button>
+                                    </div>
+                                    <div class="myth-explanation" id="myth-explanation-4">
+                                        Mythos! Laura Seelkopf bezeichnet die Kombination als «sehr ungewöhnlich» und weltweit einzigartig. Nirgendwo sonst gibt es so hohe Steuersätze bei so hohen Freibeträgen.
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1250,6 +1318,9 @@ function loadProgress() {
 }
 
 function restoreUIState() {
+    // Restore accordion states
+    restoreAccordionStates();
+    
     // Restore stat cards
     clickedStatsCards.forEach(index => {
         const cards = document.querySelectorAll('.stat-card');
@@ -1329,7 +1400,7 @@ const completedActivities = {
 };
 
 function markActivityComplete(activityName) {
-    if (completedActivities[activityName]) return; // Already completed
+    if (completedActivities[activityName]) return;
     
     completedActivities[activityName] = true;
     trackActivityComplete('artikel3', activityName);
@@ -1338,7 +1409,6 @@ function markActivityComplete(activityName) {
     console.log('✅ Activity completed:', activityName);
     console.log('📊 Status:', completedActivities);
     
-    // Check if all 4 activities are complete
     checkAllActivitiesComplete();
 }
 
@@ -1357,12 +1427,11 @@ function checkAllActivitiesComplete() {
 function unlockQuiz() {
     const quizSection = document.getElementById('quiz-section');
     if (!quizSection.classList.contains('locked')) {
-        return; // Already unlocked
+        return;
     }
     
     quizSection.classList.remove('locked');
     
-    // Scroll to quiz
     setTimeout(() => {
         const yOffset = -100;
         const y = quizSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
@@ -1370,7 +1439,6 @@ function unlockQuiz() {
         console.log('📜 Scrolled to quiz section');
     }, 100);
     
-    // Show success message
     const message = document.createElement('div');
     message.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #4caf50; color: white; padding: 20px 40px; border-radius: 10px; font-size: 1.2em; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.3);';
     message.textContent = '🎉 Quiz freigeschaltet! Alle Module abgeschlossen.';
@@ -1391,12 +1459,40 @@ function toggleSummary() {
     section.classList.toggle('open');
 }
 
+// === ACCORDION TOGGLE ===
+function toggleAccordion(sectionId) {
+    const section = document.getElementById(sectionId);
+    section.classList.toggle('open');
+    saveAccordionState(sectionId, section.classList.contains('open'));
+}
+
+function saveAccordionState(sectionId, isOpen) {
+    const key = getStorageKey('accordion_' + sectionId);
+    localStorage.setItem(key, isOpen);
+}
+
+function restoreAccordionStates() {
+    const accordions = [
+        'timeline-accordion', 
+        'matching-accordion', 
+        'stats-accordion', 
+        'myths-accordion'
+    ];
+    
+    accordions.forEach(id => {
+        const key = getStorageKey('accordion_' + id);
+        const isOpen = localStorage.getItem(key) === 'true';
+        if (isOpen) {
+            document.getElementById(id).classList.add('open');
+        }
+    });
+}
+
 // === STATISTIK-KARTEN ===
 function toggleStatCard(card) {
     card.classList.toggle('expanded');
 }
 
-// Track stats activity completion
 let clickedStatsCards = new Set();
 document.querySelectorAll('.stat-card').forEach((card, index) => {
     card.addEventListener('click', () => {
@@ -1458,7 +1554,6 @@ function checkMatch() {
     const propertyCard = document.querySelector(`#matching-properties .match-card[data-match="${selectedProperty}"]`);
     
     if (selectedCountry === correctMatches[selectedProperty]) {
-        // Correct!
         countryCard.classList.remove('selected');
         countryCard.classList.add('correct');
         propertyCard.classList.remove('selected');
@@ -1474,7 +1569,6 @@ function checkMatch() {
             markActivityComplete('matching');
         }
     } else {
-        // Incorrect
         countryCard.classList.add('incorrect');
         propertyCard.classList.add('incorrect');
         
@@ -1606,7 +1700,6 @@ function showNextQuestion() {
         nextQ.classList.add('active');
         saveProgress();
     } else {
-        // Quiz completed
         document.getElementById('completion-message').classList.add('show');
         trackQuizCompletion('artikel3', correctQuizAnswers, totalQuestions);
         markArticleComplete('artikel3');
@@ -1651,7 +1744,6 @@ window.addEventListener('beforeunload', () => {
     trackTimeSpent('artikel3');
 });
 
-// Auto-save every 30 seconds
 setInterval(() => {
     saveProgress();
 }, 30000);
