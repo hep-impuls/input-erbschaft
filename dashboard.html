@@ -525,7 +525,7 @@
                 <h2 class="section-title">
                     <span class="section-title-icon">⭐</span>
                     Umfrage-Ergebnisse
-                    <span class="community-badge">Community-Durchschnitt</span>
+                    <span class="community-badge" id="surveyParticipants">0 Teilnehmer</span>
                 </h2>
                 <div class="survey-grid" id="surveyResults"></div>
             </div>
@@ -907,10 +907,15 @@ const isVisited = hasTimeSpent;
             
             const totals = {};
             const counts = {};
+            let surveyParticipantCount = 0;
+            const participantsSet = new Set();
             
             // Daten aggregieren
-            Object.values(allUsersData).forEach(userData => {
+            Object.entries(allUsersData).forEach(([userCode, userData]) => {
                 if (userData.survey) {
+                    // Zähle jeden User nur einmal
+                    participantsSet.add(userCode);
+                    
                     Object.entries(userData.survey).forEach(([key, value]) => {
                         if (key !== 'timestamp' && categories[key]) {
                             totals[key] = (totals[key] || 0) + value;
@@ -919,6 +924,16 @@ const isVisited = hasTimeSpent;
                     });
                 }
             });
+            
+            surveyParticipantCount = participantsSet.size;
+            
+            // Teilnehmerzahl anzeigen
+            const participantBadge = document.getElementById('surveyParticipants');
+            if (surveyParticipantCount > 0) {
+                participantBadge.textContent = `${surveyParticipantCount} Teilnehmer`;
+            } else {
+                participantBadge.textContent = 'Noch keine Teilnehmer';
+            }
             
             // Cards erstellen
             for (const [key, info] of Object.entries(categories)) {
